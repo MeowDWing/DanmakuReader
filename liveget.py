@@ -1,0 +1,114 @@
+import os
+import iosetting as ios
+import bilibili_api
+from bilibili_api import live, sync, user, exceptions
+
+
+# Exception Zone
+class UserInfoError(Exception):
+    def __init__(self, error_info):
+        super().__init__(self)
+        self.error_info = error_info
+
+    def __str__(self):
+        return self.error_info
+
+
+class LiveInfoGet:
+
+    def __init__(self, uid: int = -1, rid: int = -1,  # id zone
+                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼'
+                 ):
+        """
+        你可以输入房间号或者uid的任何一个，代码会自动获取另一个
+
+        you can Enter any of rid or uid or not all of them
+
+        :param uid: get in homepage(e.g. https://space.bilibili.com/3117538/ is 3117538)
+        :param rid: live room id which is got in live homepage(e.g. https://live.bilibili.com/34162 is 34162)
+        :param up_name(str): up名，默认是资深小狐狸 / UP name, default is 资深小狐狸
+        """
+        # parameter initial zone
+        self.room_id = rid
+        self.user_id = uid
+        self.up_name = up_name
+        self.ctrl_name = ctrl_name
+
+        if not os.path.exists('./files'):
+            os.mkdir('./files')
+
+        os.system("cls")
+
+        # dictionary & list initial zone
+        #   badge_dict
+        self.badge_dict = {0: 'Passer'}
+        self.badge_dict.update({
+            lvl: 'Fans' for lvl in range(1, 21)
+        })
+        self.badge_dict.update({
+            lvl: 'Captain' for lvl in range(21, 50)
+        })
+
+        if self.user_id > 0:
+            self.user_detail = user.User(uid=self.user_id)
+            self.user_info = sync(self.user_detail.get_live_info())
+            self.room_id = self.user_info['live_room']['roomid']
+        if self.room_id > 0:
+            self.room = live.LiveRoom(room_display_id=self.room_id)
+            self.room_info = sync(self.room.get_room_info())
+            self.user_id = self.room_info['room_info']['uid']
+            if self.room_info['anchor_info']['medal_info'] is not None:
+                self.fans_badge = self.room_info['anchor_info']['medal_info']['medal_name']
+            else:
+                self.fans_badge = 'NO FANS BADGE'
+        else:
+            raise UserInfoError("User_id maybe wrong, please check again")
+
+        self.room_event_stream = live.LiveDanmaku(self.room_id)
+
+    def living_on(self):
+
+        @self.room_event_stream.on('DANMU_MSG')
+        async def on_danmaku(event):  # event -> dictionary
+            self.live_danmaku(event)
+        ios.print_set('弹幕开启', tag='SYSTEM')
+
+        sync(self.room_event_stream.connect())
+
+
+    def live_danmaku(self, event: dict = None):
+
+        user_fans_lvl = 0
+        print_flag = 'NORMAL'
+
+        # main information processing Zone
+        live_info = event['data']['info']  # list[Unknown, Msg, user_info, fans_info, Unknown:]
+        danmaku_content = live_info[1]
+        user_main_info = live_info[2]  # list[uid, Nickname, Unknown:]
+        nickname = user_main_info[1]
+        user_fans_info = live_info[3]  # list[lvl, worn_badge, Unknown:]
+        if len(user_fans_info) != 0:
+            if user_fans_info[1] == self.fans_badge:
+                print_flag = 'FANS'
+                user_fans_lvl = user_fans_info[0]
+                if user_fans_lvl > 20:
+                    print_flag = 'CAPTAIN'
+                user_title = self.badge_dict[user_fans_lvl]
+                if len(danmaku_content) > 0:
+                    with open('./files/danmaku.txt', mode='a', encoding='utf-8') as f:
+                        f.write(danmaku_content+'\n')
+
+        match nickname:
+            case self.ctrl_name:
+                print_flag = 'CTRL'
+            case self.up_name:
+                print_flag = 'UP'
+        # 方案1：
+        # print_content:
+        #       [lvl:badge]Nickname:Says
+        # ios.print_set(f'[{user_fans_lvl}:{user_title}]{nickname}:{danmaku_content}',
+        #              tag=print_flag)
+        # 方案2
+        # [lvl|nickname]says
+        ios.print_set(f'[{user_fans_lvl}|{nickname}]{danmaku_content}',
+                      tag=print_flag)
