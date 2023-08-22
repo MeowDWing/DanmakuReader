@@ -1,5 +1,6 @@
 import os
 import time
+import random
 
 
 def initial():
@@ -46,11 +47,24 @@ def _initial():
 
 
 def settings_initial():
+
     lines = [
+        'rid=34162\n',
         'API_KEY=\n',
         'SECRET_KEY=\n',
-        'rid=34162\n',
+        f'cuid={cuid()}\n'
     ]
 
     with open('./files/settings.txt', mode='w', encoding='utf-8') as f:
         f.writelines(lines)
+
+
+def cuid():
+    length = 32
+    ret = ''
+    base = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789'
+    for i in range(length):
+        ret += random.choice(base)
+    return ret
+
+
