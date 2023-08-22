@@ -29,13 +29,16 @@ def caseB():
     for line in lines:
         line = line.strip().split('=')
         if line[0] == 'rid':
-            rid = line[1]
+            rid = int(line[1])
 
     print('正在初始化弹幕获取器...')
     x = lg.LiveInfoGet(rid=rid)
 
     print("正在启动阅读器...")
-    os.startfile('reader.py')
+    if os.path.exists('reader.py'):
+        os.startfile('reader.py')
+    else:
+        os.startfile('reader.exe')
 
     print("正在启动弹幕获取器...")
     x.living_on()
@@ -46,7 +49,7 @@ def caseC():
         os.system('cls')
         print('|*===================================================================*|\n'
               '|*|                       DANMAKU   READER                          |*|\n'
-              '|*|  main -> 查看                                        DEMO  1.0   |*|\n'
+              '|*|  main -> 查看                                        DEMO  1.1   |*|\n'
               '|*===================================================================*|\n'
               '|*|                                                                 |*|\n'
               '|*|      B(b).禁读词列表        S(s).设置文件                          |*|\n'
@@ -78,7 +81,8 @@ def settings():
         'API_KEY': None,
         'SECRET_KEY': None,
         'cuid': None,
-        'rid': None
+        'rid': None,
+        'min_level': None
     }
     have = set()
     with open('./files/settings.txt', mode='r', encoding='utf-8') as f:
@@ -151,7 +155,7 @@ def main():
         os.system('cls')
         print('|*===================================================================*|\n'
               '|*|                       DANMAKU   READER                          |*|\n'
-              '|*|                                                     DEMO  1.0   |*|\n'
+              '|*|                                                     DEMO  1.1   |*|\n'
               '|*===================================================================*|\n'
               '|*|                                                                 |*|\n'
               '|*|      A(a).初始化         B(b).启动         C(c).查看               |*|\n'

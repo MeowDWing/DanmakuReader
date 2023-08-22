@@ -49,7 +49,10 @@ def _initial():
 def settings_initial():
 
     lines = [
+        '$直播主属性\n',
         'rid=34162\n',
+        'min_level=1\n',
+        '$API设置\n',
         'API_KEY=\n',
         'SECRET_KEY=\n',
         f'cuid={cuid()}\n'
