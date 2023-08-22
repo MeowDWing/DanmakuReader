@@ -42,14 +42,14 @@ def print_set(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
             begin_str = f'\033[38;2;{color_str}m'
 
     if tag in _iosetting__head_set:
-        if head is not None:
+        if head is None:
             head = tag
 
     if head is not None:
         if prefix is not None:
-            text = set_head(head, prefix) + text
+            text = set_head(head, prefix) + str(text)
         else:
-            text = set_head(head) + text
+            text = set_head(head) + str(text)
     # print format:
     #               head          tail
     #            /---------\      /---\
