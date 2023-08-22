@@ -32,7 +32,7 @@ def caseB():
             rid = line[1]
 
     print('正在初始化弹幕获取器...')
-    x = lg.LiveInfoGet(rid=34162)
+    x = lg.LiveInfoGet(rid=rid)
 
     print("正在启动阅读器...")
     os.startfile('reader.py')
@@ -77,6 +77,7 @@ def settings():
     settings_dict = {
         'API_KEY': None,
         'SECRET_KEY': None,
+        'cuid': None,
         'rid': None
     }
     have = set()

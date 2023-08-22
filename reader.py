@@ -19,6 +19,8 @@ class Reader:
         ios.print_set('本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在\n'
                       '\t\t\t------from a certain member of 保狐派', tag='CTRL')
 
+        self.player = txtprocess()
+
     def ban_word_set_initial(self):
         try:
             with open('ban_word.txt', mode='r', encoding='utf-8') as f:
@@ -36,8 +38,6 @@ class Reader:
         former = ''
         print('[read]wait initial')
         time.sleep(5)
-        with open('./files/danmaku.txt', mode='r', encoding='utf-8') as f:
-            lines = f.readlines()
         with open('./files/danmaku.txt', mode='w', encoding='utf-8'):
             pass
         while True:
@@ -87,7 +87,7 @@ class Reader:
                     self.danmaku_len -= 1
                 else:
                     ios.print_set(now+' 准备读取', tag='SYSTEM')
-                    now_hash, content, payload = txt2audio(now)
+                    now_hash, content, payload = self.player.txt2audio(now)
                     self.danmaku_len -= 1
                     former = now
 
@@ -110,69 +110,70 @@ class Reader:
                 ios.print_set('当前队列数量已同步', tag='SYSTEM')
 
 
-def txt2audio(message, api_flag=False):
-    # 如果要配置自己的api，可以
-    if api_flag:
-        SECRET_KEY = ''
-        API_KEY = ''
-    else:
+class txtprocess:
+
+    def __init__(self):
+        self.API_KEY = None
+        self.SECRET_KEY = None
+        self.cuid = None
         with open('./files/settings.txt', mode='r', encoding='utf-8') as f:
             lines = f.readlines()
-            SECRET_KEY = ''
-            API_KEY = ''
             for line in lines:
                 line = line.strip().split('=')
                 if line[0] == 'API_KEY':
-                    API_KEY = line[1]
+                    self.API_KEY = line[1]
                 elif line[0] == 'SECRET_KEY':
-                    SECRET_KEY = line[1]
+                    self.SECRET_KEY = line[1]
+                elif line[0] == 'cuid':
+                    self.cuid = line[1]
 
-    url = "https://tsn.baidu.com/text2audio"
-    tok = get_access_token(API_KEY, SECRET_KEY)
-    tex = {
-        'tex': message,
-        'lan': 'zh',
-        'cuid': 'PhVV06OsEfgN63VbSL0xIkM8OZFZQ5Rg',
-        'ctp': '1',
-        'spd': '11',
-        'pit': '7',
-        'vol': '5',
-        'per': '0',
-        'aue': '3',
-        'tok': tok
-    }
-    payload = urlencode(tex)
+    def txt2audio(self, message):
 
-    # payload = 'tex='+f'{message}'+'&lan=zh&cuid=PhVV06OsEfgN63VbSL0xIkM8OZFZQ5Rg&ctp=1&spd=11&pit=7&vol=5&per=0&aue=3'
-    #                               '&tok=' + get_access_token(API_KEY, SECRET_KEY)
+        url = "https://tsn.baidu.com/text2audio"
+        tok = self.get_access_token()
+        payload_dict = {
+            'tex': message,
+            'lan': 'zh',
+            'cuid': self.cuid,
+            'ctp': '1',
+            'spd': '11',
+            'pit': '7',
+            'vol': '5',
+            'per': '0',
+            'aue': '3',
+            'tok': tok
+        }
+        payload = urlencode(payload_dict)
 
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': '*/*'
-    }
-    hashm = hash(message)
+        # payload = 'tex='+f'{message}'+'&lan=zh&cuid=PhVV06OsEfgN63VbSL0xIkM8OZFZQ5Rg&ctp=1&spd=11&pit=7&vol=5&per=0&aue=3'
+        #                               '&tok=' + self.get_access_token()
 
-    response = requests.request("POST", url, headers=headers, data=payload)
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': '*/*'
+        }
+        hashm = hash(message)
 
-    # print(response.text)
-    if type(response.content) == 'dict':
-        ios.print_set(f'{message} may trans to audio unsuccessfully')
-        return 'bad'
-    else:
-        with open('./audio/'+f'{hashm}'+'.mp3', mode='wb') as f:
-            f.write(response.content)
+        response = requests.request("POST", url, headers=headers, data=payload)
 
-    return str(hashm), response.content, payload
+        # print(response.text)
+        if type(response.content) == 'dict':
+            ios.print_set(f'{message} may trans to audio unsuccessfully')
+            return 'bad'
+        else:
+            with open('./audio/'+f'{hashm}'+'.mp3', mode='wb') as f:
+                f.write(response.content)
 
+        return str(hashm), response.content, payload
 
-def get_access_token(A, S):
-    """
-    使用 AK，SK 生成鉴权签名（Access Token）
-    :return: access_token，或是None(如果错误)
-    """
-    url = "https://aip.baidubce.com/oauth/2.0/token"
-    params = {"grant_type": "client_credentials", "client_id": A, "client_secret": S}
-    return str(requests.post(url, params=params).json().get("access_token"))
+    def get_access_token(self):
+        """
+        使用 AK，SK 生成鉴权签名（Access Token）
+        :return: access_token，或是None(如果错误)
+        """
+        url = "https://aip.baidubce.com/oauth/2.0/token"
+        params = {"grant_type": "client_credentials", "client_id": self.API_KEY, "client_secret": self.SECRET_KEY}
+        return str(requests.post(url, params=params).json().get("access_token"))
 
 
 def main():
