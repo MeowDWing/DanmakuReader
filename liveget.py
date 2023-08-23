@@ -1,4 +1,6 @@
 import os
+import time
+
 import iosetting as ios
 import bilibili_api
 from bilibili_api import live, sync, user, exceptions
@@ -40,6 +42,8 @@ class LiveInfoGet:
         os.system("cls")
 
         # dictionary & list initial zone
+        self.settings_dict = {}
+        self.get_settings()
         #   badge_dict
         self.badge_dict = {0: 'Passer'}
         self.badge_dict.update({
@@ -65,6 +69,23 @@ class LiveInfoGet:
             raise UserInfoError("User_id maybe wrong, please check again")
 
         self.room_event_stream = live.LiveDanmaku(self.room_id)
+
+    def get_settings(self):
+        should_have = set()
+        should_have.update(['rid', 'min_level'])
+        with open('./files/settings.txt', mode='r', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        for line in lines:
+            if line[0] != '$':
+                line = line.strip().split('=')
+                if len(line) > 1:
+                    self.settings_dict[line[0]] = line[1]
+
+        for i in should_have:
+            if i not in self.settings_dict.keys():
+                ios.print_set(f'{i}似乎设置出错了', tag='WARNING')
+                time.sleep(3)
 
     def living_on(self):
 
@@ -94,7 +115,7 @@ class LiveInfoGet:
                 if user_fans_lvl > 20:
                     print_flag = 'CAPTAIN'
                 user_title = self.badge_dict[user_fans_lvl]
-                if len(danmaku_content) > 0:
+                if len(danmaku_content) > 0 and user_fans_lvl >= int(self.settings_dict['min_level']):
                     with open('./files/danmaku.txt', mode='a', encoding='utf-8') as f:
                         f.write(danmaku_content+'\n')
 
