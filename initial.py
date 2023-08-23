@@ -22,6 +22,10 @@ def _initial():
         print('正在创建audio文件夹')
         os.mkdir('./audio')
 
+    if not os.path.exists('./audiosave'):
+        print('正在创建audiosave文件夹')
+        os.mkdir('./audiosave')
+
     with open('./files/INITIAL', mode='x'):
         pass
 
