@@ -41,9 +41,9 @@
   * 好好好 > reader界面应出现：audio/365d167f44e1d0937ddcf4d3d3724fd0.mp3
   * 好好好 > 本次好好好不会调用api也不会读出来，因为相邻弹幕一致会拒绝读取
   * 。。。 > reader界面应出现：检测到。。。中仅包含符号，拒绝加入队列
+  * 狐宝新婚快乐 > reader界面应出现：audio/b3d9dc5e27b37f928531c488a7f1093f.mp3
   * 好好好 > reader界面应出现：audiosave/365d167f44e1d0937ddcf4d3d3724fd0.mp3
   * 赞 > 本次赞因为在屏蔽词中，所以不会加入队列也不会读出来
-  * 狐宝新婚快乐 > reader界面应出现：audio/b3d9dc5e27b37f928531c488a7f1093f.mp3
   * 以上测试全部通过后，即可说明程序基本功能正常运行，如果有任何错误，请联系作者。
   * 错误信息可以如下形式保留：
     * 1,在项目文件夹右键打开cmd/windows terminal
@@ -51,6 +51,7 @@
     * 3,配置完成后，在主界面输入b启动程序，并关闭自动打开的reader界面
     * 4,以打开main同样的方式打开reader.py / reader.exe
     * 5,复现错误并将错误信息发送给作者，我会十分感谢您的错误报告
+  * ![testresult.png](project_picture/testresult.png)
 
 ****
 **使用方法：**
