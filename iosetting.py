@@ -5,16 +5,17 @@ _iosetting__tag_dict = {
     'CAPTAIN_BUY_1': '\033[38;2;65;105;255m',  # Royal Blue
     'CTRL': '\033[96m',  # Sky blue bright
     'ENTER': '\033[38;2;150;150;150m',  # light gray
-    'ERROR': '\033[41m[ERROR]',  # Red bottom
+    'ERROR': '\033[41m',  # Red bottom
     'FANS': '',  # Normal
     'GIFT': '\033[93m',
     'GIFT_COMBO': '\033[93m',  # Yellow bright
     'NORMAL': '\033[90m',  # Gray
     'LIVE_SYS': '\033[38;2;125m',  # half red
     'SYSTEM': '\033[91m',  # Red bright
-    'SUCCESS': '\033[42m[SUCCESS]',  # Green bottom
+    'SUCCESS': '\033[42m',  # Green bottom
     'UP': '\033[92m',  # Green bright
-    'WARNING': '\033[43m[WARNING]',  # Yellow bottom
+    'WARNING': '\033[43m',  # Yellow bottom
+    'TIPS': '\033[38;2;0;150;150m'  # light blue with some green
 }
 _iosetting__head_set = {
     'ERROR',
@@ -22,6 +23,7 @@ _iosetting__head_set = {
     'SYSTEM',
     'SUCCESS',
     'WARNING',
+    'TIPS'
 }
 
 

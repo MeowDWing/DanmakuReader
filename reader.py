@@ -1,5 +1,5 @@
 import os
-
+import hashlib
 import requests
 import pygame
 import audioplay as player
@@ -27,8 +27,10 @@ class Reader:
         player.initial()
         self.ban_word_set = set("1234567890")
         self.ban_word_set_initial()
+        self.symbol_set = set("~!@#$%^&*()_+=-`[]\\|}{;':\",./<>?~！@#￥%……&*（）——+=-|}{【】、|‘’；：“”《》？，。、")
         ios.print_set('本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在\n'
                       '\t\t\t------from a certain member of 保狐派', tag='CTRL')
+        ios.print_set('本界面为debug界面，如果程序出现任何异常，请将本界面的错误信息发与作者', tag='TIPS')
 
         self.player = txtprocess()
 
@@ -55,18 +57,26 @@ class Reader:
             if self.tmp > 50:
                 self.tmp = 0
 
+            # 队列加入与预处理机制
             if self.danmaku_len < 50:
                 with open('./files/danmaku.txt', mode='r', encoding='utf-8') as f:
                     lines = f.readlines()
                 with open('./files/danmaku.txt', mode='w', encoding='utf-8'):
                     pass
                 if len(lines) != 0:
+
                     for line in lines:
                         line = line.strip()
-                        self.danmaku_queue.append(line)
-                        self.danmaku_len += 1
-                        ios.print_set(line+':加入了待读队列', tag='SPECIAL', head='QUEUE', special_color='#50FF50')
+                        if line not in self.ban_word_set:
+                            line_set = set(line)
+                            if len(line_set - self.symbol_set) > 0:
+                                self.danmaku_queue.append(line)
+                                self.danmaku_len += 1
+                                ios.print_set(line+':加入了待读队列', tag='SPECIAL', head='QUEUE', special_color='#50FF50')
+                            else:
+                                ios.print_set(f'检测到{line}中仅包含符号，拒绝加入队列')
 
+            # 追赶机制
             if self.danmaku_len > self.force_reset_limit:
                 self.danmaku_queue.clear()
                 self.danmaku_len = 0
@@ -108,9 +118,10 @@ class Reader:
                 self.popleft_n(1)
                 ios.print_set('队列已大于10，自动跳过33%弹幕', tag='SYSTEM', prefix='CHASING')
 
+            # 处理与读取机制
             if self.danmaku_len != 0:
                 now = self.danmaku_queue.popleft()
-                if now == former or now in self.ban_word_set:
+                if now == former:
                     self.danmaku_len -= 1
                 else:
                     ios.print_set(now+' 准备读取', tag='SYSTEM')
@@ -123,7 +134,7 @@ class Reader:
                     former = now
 
                     try:
-                        player.play(audio_path+now_hash+'.mp3')
+                        player.play(audio_path+str(now_hash)+'.mp3')
                         self.tmp += 1
                     except pygame.error:
                         ios.print_set('读取失败，失败资料如下', tag='ERROR')
@@ -164,20 +175,20 @@ class txtprocess:
                 elif line[0] == 'cuid':
                     self.cuid = line[1]
 
-    def txt2audio(self, message):
-        hashm = hash(message)
+    def txt2audio(self, message: str):
+        hashm = hashlib.md5(message.encode(encoding='utf-8')).hexdigest()
         if_join = False
 
         if len(message) < 4:
             if_join = True
 
-        if hashm in self.audio_saver:
+        if hashm in self.audio_saver.audio_set:
             return hashm, message, None, True
         else:
             hashm, content, payload = self._txt2audio(message, if_join)
             return hashm, content, payload, False
 
-    def _txt2audio(self, message, if_join):
+    def _txt2audio(self, message: str, if_join):
 
         url = "https://tsn.baidu.com/text2audio"
         tok = self.get_access_token()
@@ -202,7 +213,8 @@ class txtprocess:
             'Content-Type': 'application/x-www-form-urlencoded',
             'Accept': '*/*'
         }
-        hashm = hash(message)
+
+        hashm = hashlib.md5(message.encode(encoding='utf-8')).hexdigest()
 
         response = requests.request("POST", url, headers=headers, data=payload)
 

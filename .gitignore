@@ -169,5 +169,6 @@ livecover/
 logging.txt
 files/
 audio/
+audiosave/
 ban_word.txt
 main.spec
