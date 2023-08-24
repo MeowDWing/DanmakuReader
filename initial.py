@@ -1,6 +1,5 @@
 import os
 import time
-import random
 
 
 def initial():
@@ -17,14 +16,6 @@ def _initial():
     if not os.path.exists('./files'):
         print('正在创建files文件夹')
         os.mkdir('./files')
-
-    if not os.path.exists('./audio'):
-        print('正在创建audio文件夹')
-        os.mkdir('./audio')
-
-    if not os.path.exists('./audiosave'):
-        print('正在创建audiosave文件夹')
-        os.mkdir('./audiosave')
 
     with open('./files/INITIAL', mode='x'):
         pass
@@ -56,22 +47,11 @@ def settings_initial():
         '$直播主属性\n',
         'rid=34162\n',
         'min_level=1\n',
-        '$API设置\n',
-        'API_KEY=\n',
-        'SECRET_KEY=\n',
-        f'cuid={cuid()}\n'
     ]
 
     with open('./files/settings.txt', mode='w', encoding='utf-8') as f:
         f.writelines(lines)
 
 
-def cuid():
-    length = 32
-    ret = ''
-    base = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789'
-    for i in range(length):
-        ret += random.choice(base)
-    return ret
 
 
