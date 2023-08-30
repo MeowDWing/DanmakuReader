@@ -1,7 +1,9 @@
+import os
 import time
 from collections import deque
 import iosetting as ios
 import pyttsx3
+import re
 
 
 class Reader:
@@ -18,6 +20,7 @@ class Reader:
         self.force_reset_limit = 50
 
         self.ban_word_set = set("1234567890")
+        self.re_ban_str = ''
         self.ban_word_set_initial()
         self.symbol_set = set("~!@#$%^&*()_+=-`[]\\|}{;':\",./<>?~！@#￥%……&*（）——+=-|}{【】、|‘’；：“”《》？，。、")
         ios.print_set('本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在\n'
@@ -36,8 +39,15 @@ class Reader:
         for line in lines:
             line = line.strip()
             if line[0] != '$':
-                self.ban_word_set.add(line)
+                if line[0] == '-':
+                    line = line[1:]
+                    self.re_ban_str = self.re_ban_str + line + '|'
+                else:
+                    self.ban_word_set.add(line)
+
+        self.re_ban_str = self.re_ban_str[:-1]
         ios.print_set(f'屏蔽词列表{str(self.ban_word_set)}', tag='UP')
+        ios.print_set(f"屏蔽匹配词列表{self.re_ban_str.split('|')}", tag='UP')
 
     def reader(self):
         former = ''
@@ -59,14 +69,18 @@ class Reader:
 
                     for line in lines:
                         line = line.strip()
-                        if line not in self.ban_word_set:
-                            line_set = set(line)
-                            if len(line_set - self.symbol_set) > 0:
-                                self.danmaku_queue.append(line)
-                                self.danmaku_len += 1
-                                ios.print_set(line+':加入了待读队列', tag='SPECIAL', head='QUEUE', special_color='#50FF50')
-                            else:
-                                ios.print_set(f'检测到{line}中仅包含符号，拒绝加入队列')
+                        re_flag = re.search(self.re_ban_str, line)
+                        if re_flag is None:
+                            if line not in self.ban_word_set:
+                                line_set = set(line)
+                                if len(line_set - self.symbol_set) > 0:
+                                    self.danmaku_queue.append(line)
+                                    self.danmaku_len += 1
+                                    ios.print_set(line+':加入了待读队列', tag='SPECIAL', head='QUEUE', special_color='#50FF50')
+                                else:
+                                    ios.print_set(f'检测到{line}中仅包含符号，拒绝加入队列')
+                        else:
+                            ios.print_set(f'屏蔽{line}由于其中含有{re_flag.group()}')
 
             # 追赶机制
             if self.danmaku_len > self.force_reset_limit:
@@ -78,6 +92,7 @@ class Reader:
                 self.popleft_n(4)
                 self.force_chasing_40 += 1
                 if self.force_chasing_40 > 5:
+                    self.force_chasing_40 = 0
                     self.popleft_n(10)
                     ios.print_set('强制更新机制已减少10个弹幕', tag='CTRL', head='SYSTEM', prefix='CHASING')
                 ios.print_set('队列已大于40，自动跳过80%弹幕', tag='SYSTEM', prefix='CHASING')
@@ -86,6 +101,7 @@ class Reader:
                 self.popleft_n(3)
                 self.force_chasing_30 += 1
                 if self.force_chasing_30 > 10:
+                    self.force_chasing_30 = 0
                     self.popleft_n(10)
                     ios.print_set('强制更新机制已减少10个弹幕', tag='CTRL', head='SYSTEM', prefix='CHASING')
                 ios.print_set('队列已大于30，自动跳过75%弹幕', tag='SYSTEM', prefix='CHASING')
@@ -94,6 +110,7 @@ class Reader:
                 self.popleft_n(2)
                 self.force_chasing_20 += 1
                 if self.force_chasing_20 > 15:
+                    self.force_chasing_20 = 0
                     self.popleft_n(10)
                     ios.print_set('强制更新机制已减少10个弹幕', tag='CTRL', head='SYSTEM', prefix='CHASING')
                 ios.print_set('队列已大于20，自动跳过66%弹幕', tag='SYSTEM', prefix='CHASING')
@@ -102,13 +119,14 @@ class Reader:
                 self.popleft_n(1)
                 self.force_chasing_10 += 1
                 if self.force_chasing_10 > 20:
+                    self.force_chasing_10 = 0
                     self.popleft_n(5)
                     ios.print_set('强制更新机制已减少5个弹幕', tag='CTRL', head='SYSTEM', prefix='CHASING')
                 ios.print_set('队列已大于10，自动跳过50%弹幕', tag='SYSTEM', prefix='CHASING')
             elif self.danmaku_len > 5 and self.tmp % 3 == 0:
                 self.tmp = 0
                 self.popleft_n(1)
-                ios.print_set('队列已大于10，自动跳过33%弹幕', tag='SYSTEM', prefix='CHASING')
+                ios.print_set('队列已大于5，自动跳过33%弹幕', tag='SYSTEM', prefix='CHASING')
 
             # 处理与读取机制
             if self.danmaku_len != 0:
@@ -121,7 +139,6 @@ class Reader:
                     self.danmaku_len -= 1
                     former = now
 
-                    
             else:
                 time.sleep(3)
 
@@ -140,7 +157,7 @@ class TxtProcess:
     def __init__(self):
         self.say_engin = pyttsx3.init()
         self.say_engin.setProperty('rate', 250)
-        self.say_engin.setProperty('volume', 0.6)
+        self.say_engin.setProperty('volume', 1)
         voices = self.say_engin.getProperty('voices')
         self.say_engin.setProperty('voice', voices[0].id)
 
@@ -151,6 +168,7 @@ class TxtProcess:
 
 
 def main():
+    os.system('cls')
     read = Reader()
     read.reader()
 

@@ -1,15 +1,23 @@
 import os
-
 import iosetting as ios
 import liveget as lg
 import initial
 
 
+__VERSION__ = 'v1.4-demo-PUSH7'
+
+
 def caseA():
-    file_clearer('./files')
-    if os.path.exists('ban_word.txt'):
-        os.remove('ban_word.txt')
-    initial.initial()
+
+    ios.print_set('执行初始化将重置所有文件，你确定要继续吗(Y/y)?', tag='WARNING', end='')
+    key = input("").strip().upper()
+    if key == 'Y':
+        file_clearer('./files')
+        if os.path.exists('ban_word.txt'):
+            os.remove('ban_word.txt')
+        initial.initial()
+    else:
+        return
 
 
 def file_clearer(path):
@@ -48,7 +56,7 @@ def caseC():
         os.system('cls')
         print('|*===================================================================*|\n'
               '|*|                       DANMAKU   READER                          |*|\n'
-              '|*|  main -> 查看                                        DEMO  1.3   |*|\n'
+              f'|*|  main -> 查看                                  {__VERSION__}   |*|\n'
               '|*===================================================================*|\n'
               '|*|                                                                 |*|\n'
               '|*|      B(b).禁读词列表        S(s).设置文件                          |*|\n'
@@ -77,15 +85,13 @@ def caseC():
 
 def settings():
     settings_dict = {
-        'API_KEY': None,
-        'SECRET_KEY': None,
-        'cuid': None,
         'rid': None,
-        'min_level': None
+        'min_level': None,
     }
-    have = set()
+
     with open('./files/settings.txt', mode='r', encoding='utf-8') as f:
         lines = f.readlines()
+
     for line in lines:
         line = line.strip().split('=')
         if line[0] in settings_dict:
@@ -154,7 +160,7 @@ def main():
         os.system('cls')
         print('|*===================================================================*|\n'
               '|*|                       DANMAKU   READER                          |*|\n'
-              '|*|                                                     DEMO  1.3   |*|\n'
+              f'|*|                                              {__VERSION__}    |*|\n'
               '|*===================================================================*|\n'
               '|*|                                                                 |*|\n'
               '|*|      A(a).初始化         B(b).启动         C(c).查看               |*|\n'
@@ -164,6 +170,12 @@ def main():
               '|*|                                                                 |*|\n'
               '|*===================================================================*|')
         ios.print_set('Tips:如果你想直接修改文件，只需在c.查看中打开对应文件并直接修改，本程序中的所有改动会在重启后生效',
+                      tag='CTRL')
+        ios.print_set('Tips:作者是搞机器学习的不会写QT不会搞协程，如果想帮助作者或者up，'
+                      '欢迎来:https://github.com/MeowDWing/DanmakuReader'
+                      '，或者b站私信：吾名喵喵之翼',
+                      tag='CTRL')
+        ios.print_set('Tips:设置的内容还没做好，建议所有更改现在查看里看',
                       tag='CTRL')
 
         print('>>>', end='')
