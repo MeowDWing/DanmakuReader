@@ -6,8 +6,13 @@ import pyttsx3
 import re
 import multiprocessing
 
-class Reader:
 
+class Reader:
+    """
+
+    阅读姬类
+
+    """
     def __init__(self, global_queue: multiprocessing.Queue):
         self.danmaku_queue = deque()
         self.danmaku_len = 0
@@ -153,7 +158,11 @@ class Reader:
 
 
 class TxtProcess:
+    """
 
+    Text to Speech, based on pyttsx3
+
+    """
     def __init__(self):
         self.say_engin = pyttsx3.init()
         self.say_engin.setProperty('rate', 250)

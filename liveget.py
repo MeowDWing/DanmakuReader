@@ -48,15 +48,8 @@ class LiveInfoGet:
 
         # dictionary & list initial zone
         self.settings_dict = {}
+        self.read_any_lvl = False
         self.get_settings()
-        #   badge_dict
-        self.badge_dict = {0: 'Passer'}
-        self.badge_dict.update({
-            lvl: 'Fans' for lvl in range(1, 21)
-        })
-        self.badge_dict.update({
-            lvl: 'Captain' for lvl in range(21, 50)
-        })
 
         if self.user_id > 0:
             self.user_detail = user.User(uid=self.user_id)
@@ -92,6 +85,9 @@ class LiveInfoGet:
                 ios.print_set(f'{i}似乎设置出错了', tag='WARNING')
                 time.sleep(3)
 
+        if self.settings_dict['min_level'] == '0':
+            self.read_any_lvl = True
+
     def living_on(self):
 
         @self.room_event_stream.on('DANMU_MSG')
@@ -112,14 +108,18 @@ class LiveInfoGet:
         user_main_info = live_info[2]  # list[uid, Nickname, Unknown:]
         nickname = user_main_info[1]
         user_fans_info = live_info[3]  # list[lvl, worn_badge, Unknown:]
-        if len(user_fans_info) != 0:
+        if user_fans_info is not None:
             if user_fans_info[1] == self.fans_badge:
                 print_flag = 'FANS'
                 user_fans_lvl = user_fans_info[0]
                 if user_fans_lvl > 20:
                     print_flag = 'CAPTAIN'
 
-                if len(danmaku_content) > 0 and user_fans_lvl >= int(self.settings_dict['min_level']):
+                if_read = False
+                if user_fans_lvl >= int(self.settings_dict['min_level']) or self.read_any_lvl:
+                    if_read = True
+
+                if len(danmaku_content) > 0 and if_read:
                     if not self._queue.full():
                         if self.local_queue_len != 0:
                             while True:
