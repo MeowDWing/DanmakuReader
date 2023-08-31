@@ -4,14 +4,15 @@ from collections import deque
 import iosetting as ios
 import pyttsx3
 import re
-
+import multiprocessing
 
 class Reader:
 
-    def __init__(self):
+    def __init__(self, global_queue: multiprocessing.Queue):
         self.danmaku_queue = deque()
         self.danmaku_len = 0
         self.tmp = 0
+        self._queue = global_queue
 
         self.force_chasing_10 = 0  # 20
         self.force_chasing_20 = 0  # 15
@@ -56,31 +57,30 @@ class Reader:
         with open('./files/danmaku.txt', mode='w', encoding='utf-8'):
             pass
         while True:
+            ios.print_set(str(time.time()), head='READER', prefix='TIME')
+
             if self.tmp > 50:
                 self.tmp = 0
 
             # 队列加入与预处理机制
             if self.danmaku_len < 50:
-                with open('./files/danmaku.txt', mode='r', encoding='utf-8') as f:
-                    lines = f.readlines()
-                with open('./files/danmaku.txt', mode='w', encoding='utf-8'):
-                    pass
-                if len(lines) != 0:
+                while not self._queue.empty():
+                    c: str = self._queue.get()
+                    c = c.strip()
+                    re_flag = re.search(self.re_ban_str, c)
 
-                    for line in lines:
-                        line = line.strip()
-                        re_flag = re.search(self.re_ban_str, line)
-                        if re_flag is None:
-                            if line not in self.ban_word_set:
-                                line_set = set(line)
-                                if len(line_set - self.symbol_set) > 0:
-                                    self.danmaku_queue.append(line)
-                                    self.danmaku_len += 1
-                                    ios.print_set(line+':加入了待读队列', tag='SPECIAL', head='QUEUE', special_color='#50FF50')
-                                else:
-                                    ios.print_set(f'检测到{line}中仅包含符号，拒绝加入队列')
-                        else:
-                            ios.print_set(f'屏蔽{line}由于其中含有{re_flag.group()}')
+                    if re_flag is None:
+                        if c not in self.ban_word_set:
+                            c_set = set(c)
+                            if len(c_set - self.symbol_set) > 0:
+                                self.danmaku_queue.append(c)
+                                self.danmaku_len += 1
+                                ios.print_set(c + ':加入了待读队列', tag='SPECIAL', head='QUEUE',
+                                              special_color='#50FF50')
+                            else:
+                                ios.print_set(f'检测到{c}中仅包含符号，拒绝加入队列')
+                    else:
+                        ios.print_set(f'屏蔽{c}由于其中含有{re_flag.group()}')
 
             # 追赶机制
             if self.danmaku_len > self.force_reset_limit:
@@ -167,11 +167,5 @@ class TxtProcess:
         self.say_engin.stop()
 
 
-def main():
-    os.system('cls')
-    read = Reader()
-    read.reader()
-
-
 if __name__ == '__main__':
-    main()
+    pass

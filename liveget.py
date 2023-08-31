@@ -1,9 +1,9 @@
+import multiprocessing
 import os
 import time
-
+from collections import deque
 import iosetting as ios
-import bilibili_api
-from bilibili_api import live, sync, user, exceptions
+from bilibili_api import live, sync, user
 
 
 # Exception Zone
@@ -18,9 +18,9 @@ class UserInfoError(Exception):
 
 class LiveInfoGet:
 
-    def __init__(self, uid: int = -1, rid: int = -1,  # id zone
-                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼'
-                 ):
+    def __init__(self, g_queue: multiprocessing.Queue,
+                 uid: int = -1, rid: int = -1,  # id zone
+                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼'):
         """
         你可以输入房间号或者uid的任何一个，代码会自动获取另一个
 
@@ -35,6 +35,11 @@ class LiveInfoGet:
         self.user_id = uid
         self.up_name = up_name
         self.ctrl_name = ctrl_name
+
+        self._queue = g_queue
+        self.local_queue = deque()
+        self.queue_flag = False
+        self.local_queue_len = len(self.local_queue)
 
         if not os.path.exists('./files'):
             os.mkdir('./files')
@@ -96,7 +101,6 @@ class LiveInfoGet:
 
         sync(self.room_event_stream.connect())
 
-
     def live_danmaku(self, event: dict = None):
 
         user_fans_lvl = 0
@@ -114,10 +118,21 @@ class LiveInfoGet:
                 user_fans_lvl = user_fans_info[0]
                 if user_fans_lvl > 20:
                     print_flag = 'CAPTAIN'
-                user_title = self.badge_dict[user_fans_lvl]
+
                 if len(danmaku_content) > 0 and user_fans_lvl >= int(self.settings_dict['min_level']):
-                    with open('./files/danmaku.txt', mode='a', encoding='utf-8') as f:
-                        f.write(danmaku_content+'\n')
+                    if not self._queue.full():
+                        if self.local_queue_len != 0:
+                            while True:
+                                if not self._queue.full() and self.local_queue_len != 0:
+                                    c = self.local_queue.popleft()
+                                    self.local_queue_len -= 1
+                                    self._queue.put(c)
+                                else:
+                                    break
+                        else:
+                            self._queue.put(danmaku_content)
+                    else:
+                        self.local_queue.append(danmaku_content)
 
         match nickname:
             case self.ctrl_name:
