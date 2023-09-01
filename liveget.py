@@ -36,6 +36,8 @@ class LiveInfoGet:
         self.up_name = up_name
         self.ctrl_name = ctrl_name
 
+        self.__PREFIX = 'Rec'
+
         self._queue = g_queue
         self.local_queue = deque()
         self.queue_flag = False
@@ -89,7 +91,7 @@ class LiveInfoGet:
 
         for i in should_have:
             if i not in self.settings_dict.keys():
-                ios.print_set(f'{i}似乎设置出错了', tag='WARNING')
+                ios.print_details(f'{i}似乎设置出错了', tag='WARNING')
                 time.sleep(3)
 
     def living_on(self):
@@ -97,7 +99,7 @@ class LiveInfoGet:
         @self.room_event_stream.on('DANMU_MSG')
         async def on_danmaku(event):  # event -> dictionary
             self.live_danmaku(event)
-        ios.print_set('弹幕开启', tag='SYSTEM')
+        ios.print_details('弹幕开启', tag='SYSTEM')
 
         sync(self.room_event_stream.connect())
 
@@ -139,12 +141,8 @@ class LiveInfoGet:
                 print_flag = 'CTRL'
             case self.up_name:
                 print_flag = 'UP'
-        # 方案1：
-        # print_content:
-        #       [lvl:badge]Nickname:Says
-        # ios.print_set(f'[{user_fans_lvl}:{user_title}]{nickname}:{danmaku_content}',
-        #              tag=print_flag)
-        # 方案2
+
+        # 方案
         # [lvl|nickname]says
-        ios.print_set(f'[{user_fans_lvl}|{nickname}]{danmaku_content}',
-                      tag=print_flag)
+
+        ios.print_simple(f'[{user_fans_lvl}|{nickname}]{danmaku_content}', base=print_flag)

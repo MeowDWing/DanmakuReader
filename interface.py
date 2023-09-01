@@ -80,7 +80,7 @@ def update_content(version: str):
     with open(f'{version}.md', mode='r', encoding='utf-8') as f:
         lines = f.readlines()
     for line in lines:
-        ios.print_set(line, tag='CTRL')
+        ios.print_details(line, tag='CTRL')
 
 
 if __name__ == '__main__':
