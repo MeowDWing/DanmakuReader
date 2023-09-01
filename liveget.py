@@ -110,7 +110,7 @@ class LiveInfoGet:
         user_main_info = live_info[2]  # list[uid, Nickname, Unknown:]
         nickname = user_main_info[1]
         user_fans_info = live_info[3]  # list[lvl, worn_badge, Unknown:]
-        if user_fans_info is not None:
+        if len(user_fans_info) > 0:
             if user_fans_info[1] == self.fans_badge:
                 print_flag = 'FANS'
                 user_fans_lvl = user_fans_info[0]

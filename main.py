@@ -53,12 +53,9 @@ def begin():
 
     print("正在启动弹幕获取器与读取器...")
     process_receiver.start()
-    time.sleep(3)
     process_reader.start()
 
-    while True:
-        ios.print_details(str(time.time()), tag='SUCCESS', head='DEBUG', prefix='TIME')
-        time.sleep(10)
+    return True
 
 
 def receiver(_g_queue: multiprocessing.Queue, rid: int = 34162):
@@ -120,6 +117,8 @@ def updatec():
 
 
 def main():
+
+    f = False
     multiprocessing.freeze_support()
     print('正在检测初始化...')
     initial.initial()
@@ -164,13 +163,16 @@ def main():
         label = get[0].upper()
         match label:
             case 'A': init()
-            case 'B': begin()
+            case 'B': f = begin()
             case 'C': check()
             case 'U': updatec()
             case 'E': exit(0)
             case _:
                 print(f'{label}没有在列表中')
                 time.sleep(2)
+
+        if f:
+            exit()
 
 
 if __name__ == '__main__':
