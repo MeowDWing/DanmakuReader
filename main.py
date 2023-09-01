@@ -10,11 +10,12 @@ import initial
 
 __VERSION__ = 'v2.0-demo-PUSH8'
 __PROJ_NAME__ = 'Danmaku  Reader'
+__PREFIX = 'Main'
 
 
 def init():
 
-    ios.print_set('执行初始化将重置所有文件，你确定要继续吗(y/n)?', tag='WARNING', end='')
+    ios.print_details('执行初始化将重置所有文件，你确定要继续吗(y/n)?', tag='WARNING', end='')
     key = input("").strip().upper()
     if key == 'Y':
         file_clearer('./files')
@@ -56,7 +57,7 @@ def begin():
     process_reader.start()
 
     while True:
-        ios.print_set(str(time.time()), tag='SUCCESS', head='DEBUG', prefix='TIME')
+        ios.print_details(str(time.time()), tag='SUCCESS', head='DEBUG', prefix='TIME')
         time.sleep(10)
 
 
@@ -147,12 +148,14 @@ def main():
         #       '|*|      S(s).设置                             E(e):退出             |*|\n'
         #       '|*|                                                                 |*|\n'
         #       '|*===================================================================*|')
-        ios.print_set('Tips:如果你想直接修改文件，只需在c.查看中打开对应文件并直接修改，本程序中的所有改动会在重启后生效',
-                      tag='CTRL')
-        ios.print_set('Tips:如果想帮助作者或者up，'
+        ios.print_details('Tips:如果你想直接修改文件，只需在c.查看中打开对应文件并直接修改，本程序中的所有改动会在重启后生效',
+                          tag='CTRL')
+        ios.print_details('Tips:作者是搞机器学习的不会写QT不会搞协程，如果想帮助作者或者up，'
                       '欢迎来:https://github.com/MeowDWing/DanmakuReader'
                       '，或者b站私信：吾名喵喵之翼',
-                      tag='CTRL')
+                          tag='CTRL')
+        ios.print_details('Tips:设置的内容还没做好，建议所有更改现在查看里看',
+                          tag='CTRL')
 
         print('>>>', end='')
         get = input()
