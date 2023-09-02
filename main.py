@@ -1,6 +1,7 @@
 import os
 import time
 import multiprocessing
+from multiprocessing.pool import Pool
 import reader as rd
 import interface
 import iosetting as ios
@@ -10,7 +11,7 @@ import initial
 
 __VERSION__ = 'v2.0-demo-PUSH8'
 __PROJ_NAME__ = 'Danmaku  Reader'
-__PREFIX = 'Main'
+__PREFIX = 'Mainc'
 
 
 def init():
@@ -55,7 +56,8 @@ def begin():
     process_receiver.start()
     process_reader.start()
 
-    return True
+    process_receiver.join()
+    process_reader.join()
 
 
 def receiver(_g_queue: multiprocessing.Queue, rid: int = 34162):
@@ -163,16 +165,13 @@ def main():
         label = get[0].upper()
         match label:
             case 'A': init()
-            case 'B': f = begin()
+            case 'B': begin()
             case 'C': check()
             case 'U': updatec()
             case 'E': exit(0)
             case _:
                 print(f'{label}没有在列表中')
                 time.sleep(2)
-
-        if f:
-            exit()
 
 
 if __name__ == '__main__':

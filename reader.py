@@ -50,6 +50,8 @@ class Reader:
                     self.ban_word_set.add(line)
 
         self.re_ban_str = self.re_ban_str[:-1]
+        if len(self.re_ban_str) == 0:
+            self.re_ban_str = '$没有屏蔽词'
         ios.print_details(f'屏蔽词列表{str(self.ban_word_set)}', tag='UP')
         ios.print_details(f"屏蔽匹配词列表{self.re_ban_str.split('|')}", tag='UP')
 
@@ -57,10 +59,7 @@ class Reader:
         former = ''
         print('[read]wait initial')
         time.sleep(5)
-        with open('./files/danmaku.txt', mode='w', encoding='utf-8'):
-            pass
         while True:
-            ios.print_details(str(time.time()), head='READER', prefix='TIME')
 
             if self.tmp > 50:
                 self.tmp = 0

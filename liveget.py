@@ -94,6 +94,7 @@ class LiveInfoGet:
 
         @self.room_event_stream.on('DANMU_MSG')
         async def on_danmaku(event):  # event -> dictionary
+            print(event)
             self.live_danmaku(event)
         ios.print_details('弹幕开启', tag='SYSTEM')
 
@@ -103,6 +104,7 @@ class LiveInfoGet:
 
         user_fans_lvl = 0
         print_flag = 'NORMAL'
+        if_read = False
 
         # main information processing Zone
         live_info = event['data']['info']  # list[Unknown, Msg, user_info, fans_info, Unknown:]
@@ -110,31 +112,29 @@ class LiveInfoGet:
         user_main_info = live_info[2]  # list[uid, Nickname, Unknown:]
         nickname = user_main_info[1]
         user_fans_info = live_info[3]  # list[lvl, worn_badge, Unknown:]
+
         if len(user_fans_info) > 0:
             if user_fans_info[1] == self.fans_badge:
                 print_flag = 'FANS'
                 user_fans_lvl = user_fans_info[0]
                 if user_fans_lvl > 20:
                     print_flag = 'CAPTAIN'
+                if_read = True
 
-                if_read = False
-                if user_fans_lvl >= int(self.settings_dict['min_level']) or self.read_any_lvl:
-                    if_read = True
-
-                if len(danmaku_content) > 0 and if_read:
-                    if not self._queue.full():
-                        if self.local_queue_len != 0:
-                            while True:
-                                if not self._queue.full() and self.local_queue_len != 0:
-                                    c = self.local_queue.popleft()
-                                    self.local_queue_len -= 1
-                                    self._queue.put(c)
-                                else:
-                                    break
+        if len(danmaku_content) > 0 and (self.read_any_lvl or if_read):
+            if not self._queue.full():
+                if self.local_queue_len != 0:
+                    while True:
+                        if not self._queue.full() and self.local_queue_len != 0:
+                            c = self.local_queue.popleft()
+                            self.local_queue_len -= 1
+                            self._queue.put(c)
                         else:
-                            self._queue.put(danmaku_content)
-                    else:
-                        self.local_queue.append(danmaku_content)
+                            break
+                else:
+                    self._queue.put(danmaku_content)
+            else:
+                self.local_queue.append(danmaku_content)
 
         match nickname:
             case self.ctrl_name:
