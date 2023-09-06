@@ -2,8 +2,11 @@ import multiprocessing
 import os
 import time
 from collections import deque
+
+import bilibili_api
+
 import iosetting as ios
-from bilibili_api import live, sync, user
+from bilibili_api import live, sync, user, credential
 
 
 # Exception Zone
@@ -37,6 +40,9 @@ class LiveInfoGet:
         self.ctrl_name = ctrl_name
 
         self.__PREFIX = 'Rec'
+        sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
+        self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
+                                                 ac_time_value=ac_time_value)
 
         self._queue = g_queue
         self.local_queue = deque()
@@ -54,7 +60,7 @@ class LiveInfoGet:
         self.get_settings()
 
         if self.user_id > 0:
-            self.user_detail = user.User(uid=self.user_id)
+            self.user_detail = user.User(uid=self.user_id, credential=self.credentials)
             self.user_info = sync(self.user_detail.get_live_info())
             self.room_id = self.user_info['live_room']['roomid']
         if self.room_id > 0:
@@ -68,7 +74,7 @@ class LiveInfoGet:
         else:
             raise UserInfoError("User_id maybe wrong, please check again")
 
-        self.room_event_stream = live.LiveDanmaku(self.room_id)
+        self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
 
     def get_settings(self):
         should_have = set()
@@ -89,6 +95,18 @@ class LiveInfoGet:
 
         if self.settings_dict['min_level'] == '0':
             self.read_any_lvl = True
+
+    def get_credentials(self):
+        with open('./files/INITIAL', mode='r') as f:
+            lines = f.readlines()
+        if len(lines) > 0:
+            s = lines[3][9:-1]
+            b = lines[4][9:-1]
+            b3 = lines[5][7:-1]
+            a = lines[6][14:-1]
+        else:
+            s = b = b3 = a = None
+        return s, b, b3, a
 
     def living_on(self):
 
