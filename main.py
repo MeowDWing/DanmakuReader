@@ -64,6 +64,7 @@ def main():
             case 'L': interface.MFunc.login()
             case 'R': interface.MFunc.reset()
             case 'U': interface.MFunc.updatec()
+            case 'S': interface.MFunc.setting()
             case 'E': exit(0)
             case _:
                 print(f'{label}没有在列表中')

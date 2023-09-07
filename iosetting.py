@@ -90,12 +90,11 @@ def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
     # \033[91m[SYS:Rec->Queue]xxxxxxxxxxxxx -> auto\033[m
     ###
 
-
-
-    print(begin_str, end='')
-    print(text, end='')
-    print(end_str, end=end)
-    if log:
+    if not debug_flag:
+        print(begin_str, end='')
+        print(text, end='')
+        print(end_str, end=end)
+    if log or debug_flag:
         log_file = open("./logging.txt", mode='a', encoding='utf-8')
         log_file.write(text+end)
         log_file.close()

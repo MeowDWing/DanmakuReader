@@ -2,7 +2,7 @@ import multiprocessing
 import os
 import time
 from collections import deque
-
+import random
 import bilibili_api
 
 import iosetting as ios
@@ -23,7 +23,7 @@ class LiveInfoGet:
 
     def __init__(self, g_queue: multiprocessing.Queue,
                  uid: int = -1, rid: int = -1,  # id zone
-                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼'):
+                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼', debug_flag: bool = False):
         """
         你可以输入房间号或者uid的任何一个，代码会自动获取另一个
 
@@ -38,12 +38,15 @@ class LiveInfoGet:
         self.user_id = uid
         self.up_name = up_name
         self.ctrl_name = ctrl_name
+        self.debug_flag = debug_flag
 
         self.__PREFIX = 'Rec'
-        sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
-        self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
-                                                 ac_time_value=ac_time_value)
-
+        if os.path.exists('./files/login'):
+            sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
+            self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
+                                                     ac_time_value=ac_time_value)
+        else:
+            self.credentials = None
         self._queue = g_queue
         self.local_queue = deque()
         self.queue_flag = False
@@ -97,12 +100,14 @@ class LiveInfoGet:
             self.read_any_lvl = True
 
     def get_credentials(self):
-        with open('./files/INITIAL', mode='r') as f:
+        with open('./files/INITIAL', mode='r', encoding='utf-8') as f:
             lines = f.readlines()
         if len(lines) > 0:
             s = lines[3][9:-1]
             b = lines[4][9:-1]
             b3 = lines[5][7:-1]
+            if b3 == 'None':
+                b3 = None
             a = lines[6][14:-1]
         else:
             s = b = b3 = a = None
@@ -112,7 +117,8 @@ class LiveInfoGet:
 
         @self.room_event_stream.on('DANMU_MSG')
         async def on_danmaku(event):  # event -> dictionary
-            print(event)
+            if self.debug_flag:
+                ios.print_details('danmaku'+str(random.randint(0, 50000))+'='+str(event), debug_flag=True)
             self.live_danmaku(event)
         ios.print_details('弹幕开启', tag='SYSTEM')
 

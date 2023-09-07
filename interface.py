@@ -61,10 +61,13 @@ def interface(proj_name: str, set_dict: dict, version: str, location: str, pflag
                   f"{set_lines[tmp+1].ljust(44 - ll1)}"
                   f"|*|")
     print(f"|*|{' ' * 74}|*|")
-    if eflag or pflag:
-        print(f"|*|        {'P(p).上一级'.ljust(44-3)}{'E(e).退出'.ljust(22-2)}|*|")
-        print(f"|*|{' ' * 74}|*|")
-
+    if eflag:
+        if location == 'main':
+            print(f"|*|        {'S(s).设置'.ljust(44-2)}{'E(e).退出'.ljust(22-2)}|*|")
+            print(f"|*|{' ' * 74}|*|")
+        elif pflag:
+            print(f"|*|        {'P(p).上一级'.ljust(44-3)}{'E(e).退出'.ljust(22-2)}|*|")
+            print(f"|*|{' ' * 74}|*|")
     print(f"|*{'=' * 76}*|")
 
     # print('|*===================================================================*|\n'
@@ -198,7 +201,7 @@ class MFunc:
                 },
                 pflag=True, eflag=True,
             )
-            ios.print_details('选择账号密码登陆后，即自动保存至本地，若本次登录成功，之后无需再次登录', tag='TIPS', head='TIPS')
+            ios.print_details('选择账号密码登陆后，即自动保存至本地，几天内即无需再次登录，之后若无法使用，请再次登录', tag='TIPS', head='TIPS')
             ios.print_details('本程序所有输入与保存均为明文形式，切勿泄露，并在确保网络安全的情况下（私人或可信的公共网络下）使用', tag='UP', head='TIPS')
             get = input('>>>').strip().upper()
             match get:
@@ -216,7 +219,7 @@ class MFunc:
                             f'pw={pw}\n',
                             f'sessdate={credentials.sessdata}\n',
                             f'bili_jct={credentials.bili_jct}\n',
-                            f'buvid3={credentials.buvid3}',
+                            f'buvid3={credentials.buvid3}\n',
                             f'ac_time_value={credentials.ac_time_value}\n'
                         ]
                         f.writelines(lines)
@@ -254,6 +257,32 @@ class MFunc:
         update_content(main.__VERSION__)
         input("很好，我知道了！（Enter退出）")
 
+    @staticmethod
+    def setting():
+
+        if os.path.exists('./files/login'):
+            login_flag = 'Y'
+        else:
+            login_flag = 'N'
+
+        while True:
+            os.system('cls')
+            interface(
+                proj_name=main.__PROJ_NAME__,
+                version=main.__VERSION__,
+                location='main->设置',
+                set_dict={
+                    'a': f'自动登录 {login_flag}',
+                },
+                eflag=True, pflag=True
+            )
+
+            get = input('>>>').strip().upper()
+            match get:
+                case 'A': login_flag = SetFunc.auto_login(login_flag)
+                case 'P': return
+                case 'E': exit()
+
 
 class LoginFunc:
 
@@ -271,10 +300,12 @@ class LoginFunc:
             return None, 'False', 'False'
         if isinstance(c, login.Check):
             # 还需验证
-            print("需要进行验证。请考虑使用二维码登录")
+            print("需要进行验证。请考虑使用验证码登录")
             return None, username, password
         else:
             credential = c
+            with open('./files/login', mode='w'):
+                pass
             return credential, username, password
 
     @staticmethod
@@ -291,6 +322,21 @@ class LoginFunc:
         else:
             credential = c
             return credential
+
+
+class SetFunc:
+    @staticmethod
+    def auto_login(login_flag):
+        if login_flag == 'Y':
+            login_flag = 'N'
+            pathnow = os.getcwd()
+            os.remove('files/login')
+        else:
+            with open('./files/login', mode='w'):
+                login_flag = 'Y'
+
+        return login_flag
+
 
 
 def receiver(_g_queue: multiprocessing.Queue, rid: int = 34162):
