@@ -202,7 +202,7 @@ class MFunc:
             ios.print_details('本程序所有输入与保存均为明文形式，切勿泄露，并在确保网络安全的情况下（私人或可信的公共网络下）使用', tag='UP', head='TIPS')
             get = input('>>>').strip().upper()
             match get:
-                case 'A': LoginFunc.login_by_sms()
+                case 'A': credentials = LoginFunc.login_by_sms()
                 case 'B': credentials, sign, pw = LoginFunc.login_by_pw()
                 case 'P': return
                 case 'E': exit(0)
@@ -223,6 +223,31 @@ class MFunc:
                     ios.print_simple('保存完毕', base='CTRL')
                     time.sleep(1)
                     return
+
+                else:
+                    with open('./files/INITIAL', mode='r', encoding='utf-8') as f:
+                        lines = f.readlines()
+                        if len(lines) > 0:
+                            if len(lines[1]) > 7 and len(lines[2]) > 5:
+                                sign = lines[1][5:-1]
+                                pw = lines[2][3:-1]
+                            else:
+                                sign = ''
+                                pw = ''
+
+                    with open('./files/INITIAL', mode='w', encoding='utf-8') as f:
+                        lines = [
+                            '本文件行对应，除非理解程序逻辑，否则请勿以任何方式更改本文件\n',
+                            f'sign={sign}\n',
+                            f'pw={pw}\n',
+                            f'sessdate={credentials.sessdata}\n',
+                            f'bili_jct={credentials.bili_jct}\n',
+                            f'buvid3={credentials.buvid3}\n',
+                            f'ac_time_value={credentials.ac_time_value}\n'
+                        ]
+                        f.writelines(lines)
+                    ios.print_simple('保存完毕', base='CTRL')
+                    time.sleep(1)
 
     @staticmethod
     def updatec():
