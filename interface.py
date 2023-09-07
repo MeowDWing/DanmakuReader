@@ -198,6 +198,7 @@ class MFunc:
                 set_dict={
                     'a': '验证码',
                     'b': '账号密码',
+                    'c': '二维码'
                 },
                 pflag=True, eflag=True,
             )
@@ -207,6 +208,7 @@ class MFunc:
             match get:
                 case 'A': credentials = LoginFunc.login_by_sms()
                 case 'B': credentials, sign, pw = LoginFunc.login_by_pw()
+                case 'C': credentials = LoginFunc.qrcode()
                 case 'P': return
                 case 'E': exit(0)
 
@@ -322,6 +324,22 @@ class LoginFunc:
         else:
             credential = c
             return credential
+
+    @staticmethod
+    def qrcode():
+        print("请登录：")
+        credential = login.login_with_qrcode_term()  # 在终端扫描二维码登录
+        # credential = login.login_with_qrcode() # 使用窗口显示二维码登录
+        try:
+            credential.raise_for_no_bili_jct()  # 判断是否成功
+            credential.raise_for_no_sessdata()  # 判断是否成功
+            return credential
+        except:
+            print("登陆失败。。。")
+            time.sleep(3)
+            return None
+
+
 
 
 class SetFunc:
