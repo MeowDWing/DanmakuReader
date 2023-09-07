@@ -1,9 +1,12 @@
+import multiprocessing
 import os
 import time
+from collections import deque
+import random
+import bilibili_api
 
 import iosetting as ios
-import bilibili_api
-from bilibili_api import live, sync, user, exceptions
+from bilibili_api import live, sync, user, credential
 
 
 # Exception Zone
@@ -18,9 +21,9 @@ class UserInfoError(Exception):
 
 class LiveInfoGet:
 
-    def __init__(self, uid: int = -1, rid: int = -1,  # id zone
-                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼'
-                 ):
+    def __init__(self, g_queue: multiprocessing.Queue,
+                 uid: int = -1, rid: int = -1,  # id zone
+                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼', debug_flag: bool = False):
         """
         你可以输入房间号或者uid的任何一个，代码会自动获取另一个
 
@@ -35,6 +38,19 @@ class LiveInfoGet:
         self.user_id = uid
         self.up_name = up_name
         self.ctrl_name = ctrl_name
+        self.debug_flag = debug_flag
+
+        self.__PREFIX = 'Rec'
+        if os.path.exists('./files/login'):
+            sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
+            self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
+                                                     ac_time_value=ac_time_value)
+        else:
+            self.credentials = None
+        self._queue = g_queue
+        self.local_queue = deque()
+        self.queue_flag = False
+        self.local_queue_len = len(self.local_queue)
 
         if not os.path.exists('./files'):
             os.mkdir('./files')
@@ -43,18 +59,11 @@ class LiveInfoGet:
 
         # dictionary & list initial zone
         self.settings_dict = {}
+        self.read_any_lvl = False
         self.get_settings()
-        #   badge_dict
-        self.badge_dict = {0: 'Passer'}
-        self.badge_dict.update({
-            lvl: 'Fans' for lvl in range(1, 21)
-        })
-        self.badge_dict.update({
-            lvl: 'Captain' for lvl in range(21, 50)
-        })
 
         if self.user_id > 0:
-            self.user_detail = user.User(uid=self.user_id)
+            self.user_detail = user.User(uid=self.user_id, credential=self.credentials)
             self.user_info = sync(self.user_detail.get_live_info())
             self.room_id = self.user_info['live_room']['roomid']
         if self.room_id > 0:
@@ -68,7 +77,7 @@ class LiveInfoGet:
         else:
             raise UserInfoError("User_id maybe wrong, please check again")
 
-        self.room_event_stream = live.LiveDanmaku(self.room_id)
+        self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
 
     def get_settings(self):
         should_have = set()
@@ -84,23 +93,42 @@ class LiveInfoGet:
 
         for i in should_have:
             if i not in self.settings_dict.keys():
-                ios.print_set(f'{i}似乎设置出错了', tag='WARNING')
+                ios.print_details(f'{i}似乎设置出错了', tag='WARNING')
                 time.sleep(3)
+
+        if self.settings_dict['min_level'] == '0':
+            self.read_any_lvl = True
+
+    def get_credentials(self):
+        with open('./files/INITIAL', mode='r', encoding='utf-8') as f:
+            lines = f.readlines()
+        if len(lines) > 0:
+            s = lines[3][9:-1]
+            b = lines[4][9:-1]
+            b3 = lines[5][7:-1]
+            if b3 == 'None':
+                b3 = None
+            a = lines[6][14:-1]
+        else:
+            s = b = b3 = a = None
+        return s, b, b3, a
 
     def living_on(self):
 
         @self.room_event_stream.on('DANMU_MSG')
         async def on_danmaku(event):  # event -> dictionary
+            if self.debug_flag:
+                ios.print_details('danmaku'+str(random.randint(0, 50000))+'='+str(event), debug_flag=True)
             self.live_danmaku(event)
-        ios.print_set('弹幕开启', tag='SYSTEM')
+        ios.print_details('弹幕开启', tag='SYSTEM')
 
         sync(self.room_event_stream.connect())
-
 
     def live_danmaku(self, event: dict = None):
 
         user_fans_lvl = 0
         print_flag = 'NORMAL'
+        if_read = False
 
         # main information processing Zone
         live_info = event['data']['info']  # list[Unknown, Msg, user_info, fans_info, Unknown:]
@@ -108,28 +136,37 @@ class LiveInfoGet:
         user_main_info = live_info[2]  # list[uid, Nickname, Unknown:]
         nickname = user_main_info[1]
         user_fans_info = live_info[3]  # list[lvl, worn_badge, Unknown:]
-        if len(user_fans_info) != 0:
+
+        if len(user_fans_info) > 0:
             if user_fans_info[1] == self.fans_badge:
                 print_flag = 'FANS'
                 user_fans_lvl = user_fans_info[0]
                 if user_fans_lvl > 20:
                     print_flag = 'CAPTAIN'
-                user_title = self.badge_dict[user_fans_lvl]
-                if len(danmaku_content) > 0 and user_fans_lvl >= int(self.settings_dict['min_level']):
-                    with open('./files/danmaku.txt', mode='a', encoding='utf-8') as f:
-                        f.write(danmaku_content+'\n')
+                if_read = True
+
+        if len(danmaku_content) > 0 and (self.read_any_lvl or if_read):
+            if not self._queue.full():
+                if self.local_queue_len != 0:
+                    while True:
+                        if not self._queue.full() and self.local_queue_len != 0:
+                            c = self.local_queue.popleft()
+                            self.local_queue_len -= 1
+                            self._queue.put(c)
+                        else:
+                            break
+                else:
+                    self._queue.put(danmaku_content)
+            else:
+                self.local_queue.append(danmaku_content)
 
         match nickname:
             case self.ctrl_name:
                 print_flag = 'CTRL'
             case self.up_name:
                 print_flag = 'UP'
-        # 方案1：
-        # print_content:
-        #       [lvl:badge]Nickname:Says
-        # ios.print_set(f'[{user_fans_lvl}:{user_title}]{nickname}:{danmaku_content}',
-        #              tag=print_flag)
-        # 方案2
+
+        # 方案
         # [lvl|nickname]says
-        ios.print_set(f'[{user_fans_lvl}|{nickname}]{danmaku_content}',
-                      tag=print_flag)
+
+        ios.print_simple(f'[{user_fans_lvl}|{nickname}]{danmaku_content}', base=print_flag)

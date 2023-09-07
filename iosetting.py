@@ -1,3 +1,5 @@
+from enum import Enum
+
 _iosetting__tag_dict = {
     'CAPTAIN': '\033[94m',  # Blue bright
     'CAPTAIN_BUY_3': '\033[38;2;0;191;255m',  # Deep Sky Blue
@@ -27,8 +29,30 @@ _iosetting__head_set = {
 }
 
 
-def print_set(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
-              head: str = None, prefix: str = None, log=False, special_color='FFFFFF', end='\n'):
+def print_simple(text: str, base: str = 'NORMAL',
+                 special_color='FFFFFF', end='\n'):
+
+    begin_str = ''
+    end_str = '\033[0m'
+
+    if base in _iosetting__tag_dict:
+        begin_str = _iosetting__tag_dict[base]
+
+    match base:
+        case 'SC' | 'SC_JPN':  # customizing color
+            color_str = hex2dec_str(special_color)
+            begin_str = f'\033[38;2;{color_str}m'
+        case 'SPECIAL':
+            color_str = hex2dec_str(special_color)
+            begin_str = f'\033[38;2;{color_str}m'
+
+    print(begin_str, end='')
+    print(text, end='')
+    print(end_str, end=end)
+
+
+def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
+                  head: str = None, prefix: str = None, log=False, special_color='FFFFFF', end='\n'):
     begin_str = ''
     end_str = '\033[0m'
 
@@ -59,10 +83,18 @@ def print_set(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
     # \033[xxm[HEAD->PREFIX]TEXT[SUFFIX]\033[m
     # \033[91m[SYSTEM->REPLY MODULE]xxxxxxxxx\033[m
 
-    print(begin_str, end='')
-    print(text, end='')
-    print(end_str, end=end)
-    if log:
+    # new print format:
+    #
+    # bcCTRL head prefix func text suffix ecCTRL
+    # \033[xxm[HEAD:PREFIX->FUNC]TEXT -> suffix ecCTRL
+    # \033[91m[SYS:Rec->Queue]xxxxxxxxxxxxx -> auto\033[m
+    ###
+
+    if not debug_flag:
+        print(begin_str, end='')
+        print(text, end='')
+        print(end_str, end=end)
+    if log or debug_flag:
         log_file = open("./logging.txt", mode='a', encoding='utf-8')
         log_file.write(text+end)
         log_file.close()
@@ -79,9 +111,9 @@ def hex2dec_str(str16: str = '#FFFFFF') -> str:
     if str16[0] == '#':
         str16 = str16[1:]
     if len(str16) > 6:
-        print_set('A wrong RGB color set', tag='WARNING')
+        print_details('A wrong RGB color set', tag='WARNING')
         str16 = str16[0:6]
-        print_set(f'new slice is {str16}', tag='WARNING')
+        print_details(f'new slice is {str16}', tag='WARNING')
     R_channel = '0x'+str16[0:2]
     G_channel = '0x'+str16[2:4]
     B_channel = '0x'+str16[4:]
@@ -90,7 +122,7 @@ def hex2dec_str(str16: str = '#FFFFFF') -> str:
         decG = int(G_channel, 16)
         decB = int(B_channel, 16)
     except ValueError:
-        print_set('You set a WRONG RGB code, color has been reset to 0x000000', tag='ERROR')
+        print_details('You set a WRONG RGB code, color has been reset to 0x000000', tag='ERROR')
         decR = decG = decB = 0
     trans_str = str(decR)+';'+str(decG)+';'+str(decB)
     return trans_str  # str -> xx;xx;xx
