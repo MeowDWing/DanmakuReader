@@ -1,5 +1,5 @@
 import time
-
+import uuid
 import bilibili_api
 
 import iosetting as ios
@@ -215,6 +215,7 @@ class MFunc:
             if credentials is not None:
                 if sign != 'False' and pw != 'False':
                     with open('./files/INITIAL', mode='w', encoding='utf-8') as f:
+                        credentials.generate_buvid3()
                         lines = [
                             '本文件行对应，请勿以任何方式更改本文件\n',
                             f'sign={sign}\n',
@@ -225,8 +226,13 @@ class MFunc:
                             f'ac_time_value={credentials.ac_time_value}\n'
                         ]
                         f.writelines(lines)
+                    ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
+                                     f'bili_jct:...{credentials.bili_jct[-6:]}\n'
+                                     f'buvid3:...{credentials.buvid3[-6:]}\n'
+                                     f'ac_time_value:...{credentials.ac_time_value[-6:]}\n'
+                                     '如果上述内容中出现规则内容或者buvid3中没有infoc字样，请重新登陆', base='CTRL')
                     ios.print_simple('保存完毕', base='CTRL')
-                    time.sleep(1)
+                    time.sleep(5)
                     return
 
                 else:
@@ -241,6 +247,7 @@ class MFunc:
                                 pw = ''
 
                     with open('./files/INITIAL', mode='w', encoding='utf-8') as f:
+                        credentials.generate_buvid3()
                         lines = [
                             '本文件行对应，除非理解程序逻辑，否则请勿以任何方式更改本文件\n',
                             f'sign={sign}\n',
@@ -251,8 +258,13 @@ class MFunc:
                             f'ac_time_value={credentials.ac_time_value}\n'
                         ]
                         f.writelines(lines)
+                    ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
+                                     f'bili_jct:...{credentials.bili_jct[-6:]}\n'
+                                     f'buvid3:...{credentials.buvid3[-6:]}\n'
+                                     f'ac_time_value:...{credentials.ac_time_value[-6:]}\n'
+                                     '如果上述内容中出现规则内容或者buvid3中没有infoc字样，请重新登陆', base='CTRL')
                     ios.print_simple('保存完毕', base='CTRL')
-                    time.sleep(1)
+                    time.sleep(5)
 
     @staticmethod
     def updatec():
