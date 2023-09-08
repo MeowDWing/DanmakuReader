@@ -215,7 +215,7 @@ class MFunc:
             if credentials is not None:
                 if sign != 'False' and pw != 'False':
                     with open('./files/INITIAL', mode='w', encoding='utf-8') as f:
-                        credentials.generate_buvid3()
+                        credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
                         lines = [
                             '本文件行对应，请勿以任何方式更改本文件\n',
                             f'sign={sign}\n',
@@ -232,7 +232,7 @@ class MFunc:
                                      f'ac_time_value:...{credentials.ac_time_value[-6:]}\n'
                                      '如果上述内容中出现规则内容或者buvid3中没有infoc字样，请重新登陆', base='CTRL')
                     ios.print_simple('保存完毕', base='CTRL')
-                    time.sleep(5)
+                    time.sleep(1)
                     return
 
                 else:
@@ -247,7 +247,7 @@ class MFunc:
                                 pw = ''
 
                     with open('./files/INITIAL', mode='w', encoding='utf-8') as f:
-                        credentials.generate_buvid3()
+                        credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
                         lines = [
                             '本文件行对应，除非理解程序逻辑，否则请勿以任何方式更改本文件\n',
                             f'sign={sign}\n',
