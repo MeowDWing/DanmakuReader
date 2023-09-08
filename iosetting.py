@@ -1,4 +1,4 @@
-from enum import Enum
+
 
 _iosetting__tag_dict = {
     'CAPTAIN': '\033[94m',  # Blue bright

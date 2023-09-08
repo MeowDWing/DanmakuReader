@@ -172,3 +172,5 @@ audio/
 audiosave/
 ban_word.txt
 main.spec
+*.json
+

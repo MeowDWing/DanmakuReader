@@ -7,7 +7,7 @@ import iosetting as ios
 import initial
 
 
-__VERSION__ = 'v2.0-demo-PUSH8'
+__VERSION__ = 'v2.1-demo-PUSH9'
 __PROJ_NAME__ = 'Danmaku  Reader'
 __PREFIX = 'Mainc'
 

@@ -55,8 +55,6 @@ class LiveInfoGet:
         if not os.path.exists('./files'):
             os.mkdir('./files')
 
-        os.system("cls")
-
         # dictionary & list initial zone
         self.settings_dict = {}
         self.read_any_lvl = False
