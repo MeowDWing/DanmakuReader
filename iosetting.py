@@ -1,5 +1,4 @@
 import json
-import random
 
 _iosetting__tag_dict = {
     'CAPTAIN': '\033[94m',  # Blue bright
@@ -129,7 +128,7 @@ def hex2dec_str(str16: str = '#FFFFFF') -> str:
     return trans_str  # str -> xx;xx;xx
 
 
-class JsonParse:
+class JsonParser:
     @staticmethod
     def load(filename) -> dict:
         with open(filename, mode='r', encoding='utf-8') as f:

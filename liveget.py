@@ -22,21 +22,18 @@ class UserInfoError(Exception):
 class LiveInfoGet:
 
     def __init__(self, g_queue: multiprocessing.Queue,
-                 uid: int = -1, rid: int = -1,  # id zone
                  up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼',
                  debug_flag: bool = False, login_flag: bool = False):
         """
-        你可以输入房间号或者uid的任何一个，代码会自动获取另一个
 
-        you can Enter any of rid or uid or not all of them
-
-        :param uid: get in homepage(e.g. https://space.bilibili.com/3117538/ is 3117538)
-        :param rid: live room id which is got in live homepage(e.g. https://live.bilibili.com/34162 is 34162)
-        :param up_name(str): up名，默认是资深小狐狸 / UP name, default is 资深小狐狸
+        :param g_queue: 全局队列，多进程通信
+        :param up_name: up的名字，用于标记弹幕显示颜色，无别的用处
+        :param ctrl_name: 控制名，永远都是作者，改变弹幕显示颜色，如果以后有其他贡献者，会做成集合
+        :param debug_flag: 是否debug，打包好后没有更改接口，以后会做接口
+        :param login_flag: 是否登录标记，用于检测登录
         """
+
         # parameter initial zone
-        self.room_id = rid
-        self.user_id = uid
         self.up_name = up_name
         self.ctrl_name = ctrl_name
         self.debug_flag = debug_flag
@@ -50,7 +47,6 @@ class LiveInfoGet:
             self.credentials = None
         self._queue = g_queue
         self.local_queue = deque()
-        self.queue_flag = False
         self.local_queue_len = len(self.local_queue)
 
         if not os.path.exists('./files'):
@@ -60,15 +56,14 @@ class LiveInfoGet:
         self.settings_dict = {}
         self.read_any_lvl = False
         self.get_settings()
+        self.room_id = self.settings_dict['rid']
+        self.min_lvl = self.settings_dict['min_level']
 
-        if self.user_id > 0:
-            self.user_detail = user.User(uid=self.user_id, credential=self.credentials)
-            self.user_info = sync(self.user_detail.get_live_info())
-            self.room_id = self.user_info['live_room']['roomid']
         if self.room_id > 0:
             self.room = live.LiveRoom(room_display_id=self.room_id)
             self.room_info = sync(self.room.get_room_info())
             self.user_id = self.room_info['room_info']['uid']
+            self.up_name = self.room_info['anchor_info']['base_info']['uname']
             if self.room_info['anchor_info']['medal_info'] is not None:
                 self.fans_badge = self.room_info['anchor_info']['medal_info']['medal_name']
             else:
@@ -80,13 +75,13 @@ class LiveInfoGet:
 
     def get_settings(self):
 
-        self.settings_dict = ios.JsonParse.load('./files/settings.txt')['basic_setting']
+        self.settings_dict = ios.JsonParser.load('./files/settings.txt')['basic_setting']
 
         if self.settings_dict['min_level'] == '0':
             self.read_any_lvl = True
 
     def get_credentials(self):
-        c_dict = ios.JsonParse.load('./files/INITIAL')
+        c_dict = ios.JsonParser.load('./files/INITIAL')
 
         s = c_dict['sessdate']
         b = c_dict['bili_jct']
@@ -101,12 +96,12 @@ class LiveInfoGet:
         async def on_danmaku(event):  # event -> dictionary
             if self.debug_flag:
                 ios.print_details('danmaku'+str(random.randint(0, 50000))+'='+str(event), debug_flag=True)
-            self.live_danmaku(event)
+            self.danmaku_processing(event)
         ios.print_details('弹幕开启', tag='SYSTEM')
 
         sync(self.room_event_stream.connect())
 
-    def live_danmaku(self, event: dict = None):
+    def danmaku_processing(self, event: dict = None):
 
         user_fans_lvl = 0
         print_flag = 'NORMAL'
@@ -123,9 +118,10 @@ class LiveInfoGet:
             if user_fans_info[1] == self.fans_badge:
                 print_flag = 'FANS'
                 user_fans_lvl = user_fans_info[0]
-                if user_fans_lvl > 20:
+                if user_fans_lvl > 19:
                     print_flag = 'CAPTAIN'
-                if_read = True
+                if user_fans_lvl >= self.min_lvl:
+                    if_read = True
 
         if len(danmaku_content) > 0 and (self.read_any_lvl or if_read):
             if not self._queue.full():

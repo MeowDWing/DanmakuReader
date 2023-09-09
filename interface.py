@@ -105,13 +105,15 @@ class MFunc:
     @staticmethod
     def reset():
 
-        ios.print_details('执行指令将重置所有文件（如屏蔽词，登录信息等），你确定要继续吗(y/n)?', tag='WARNING', end='')
+        save_initial_dict = ios.JsonParser.load('./files/INITIAL')
+        ios.print_details('执行指令将重置所有文件（如屏蔽词等），请提前备份，你确定要继续吗(y/n)?', tag='WARNING', end='')
         key = input("").strip().upper()
         if key == 'Y':
             file_clearer('./files')
             if os.path.exists('ban_word.txt'):
                 os.remove('ban_word.txt')
             initial.initial()
+            ios.JsonParser.dump('./files/INITIAL', save_initial_dict, mode='w')
         else:
             return
 
@@ -120,16 +122,9 @@ class MFunc:
 
         __global_queue = multiprocessing.Queue(233)
         print('正在读取房间号...')
-        rid = 34162
-        with open('./files/settings.txt', mode='r', encoding='utf-8') as f:
-            lines = f.readlines()
-        for line in lines:
-            line = line.strip().split('=')
-            if line[0] == 'rid':
-                rid = int(line[1])
 
         print('正在初始化弹幕获取器...')
-        process_receiver = multiprocessing.Process(target=receiver, args=(__global_queue, rid, login_flag))
+        process_receiver = multiprocessing.Process(target=receiver, args=(__global_queue, login_flag))
 
         print("正在初始化阅读器...")
         process_reader = multiprocessing.Process(target=reader, args=(__global_queue,))
@@ -220,14 +215,14 @@ class MFunc:
             if credentials is not None:
                 if sign != 'False' and pw != 'False':
                     credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
-                    set_dict = ios.JsonParse.load('./files/INITIAL')
+                    set_dict = ios.JsonParser.load('./files/INITIAL')
                     set_dict['id'] = sign
                     set_dict['pw'] = pw
                     set_dict['sessdate'] = credentials.sessdata
                     set_dict['bili_jct'] = credentials.bili_jct
                     set_dict['buvid'] = credentials.buvid3
                     set_dict['ac_time_value'] = credentials.ac_time_value
-                    ios.JsonParse.dump('./files/INITIAL', set_dict, mode='w')
+                    ios.JsonParser.dump('./files/INITIAL', set_dict, mode='w')
                     ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
                                      f'bili_jct:...{credentials.bili_jct[-6:]}\n'
                                      f'buvid3:...{credentials.buvid3[-6:]}\n'
@@ -240,12 +235,12 @@ class MFunc:
                 else:
 
                     credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
-                    set_dict = ios.JsonParse.load('./files/INITIAL')
+                    set_dict = ios.JsonParser.load('./files/INITIAL')
                     set_dict['sessdate'] = credentials.sessdata
                     set_dict['bili_jct'] = credentials.bili_jct
                     set_dict['buvid'] = credentials.buvid3
                     set_dict['ac_time_value'] = credentials.ac_time_value
-                    ios.JsonParse.dump('./files/INITIAL', set_dict, mode='w')
+                    ios.JsonParser.dump('./files/INITIAL', set_dict, mode='w')
                     ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
                                      f'bili_jct:...{credentials.bili_jct[-6:]}\n'
                                      f'buvid3:...{credentials.buvid3[-6:]}\n'
@@ -367,8 +362,8 @@ class SetFunc:
         return login_flag
 
 
-def receiver(_g_queue: multiprocessing.Queue, rid: int = 34162, login_flag=False):
-    x = lg.LiveInfoGet(rid=rid, g_queue=_g_queue, login_flag=login_flag)
+def receiver(_g_queue: multiprocessing.Queue, login_flag=False):
+    x = lg.LiveInfoGet(g_queue=_g_queue, login_flag=login_flag)
     x.living_on()
 
 

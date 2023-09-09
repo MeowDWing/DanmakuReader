@@ -14,7 +14,6 @@ __PREFIX = 'Mainc'
 
 def main():
 
-    f = False
     multiprocessing.freeze_support()
     print('正在检测初始化...')
     initial.initial()
@@ -47,11 +46,11 @@ def main():
         #       '|*===================================================================*|')
         ios.print_details('Tips:如果你想直接修改文件，只需在c.查看中打开对应文件并直接修改，本程序中的所有改动会在重启后生效',
                           tag='CTRL')
-        ios.print_details('Tips:作者是搞机器学习的不会写QT不会搞协程，如果想帮助作者或者up，'
+        ios.print_details('Tips:作者是搞机器学习的不会写QT，如果想帮助作者或者up，'
                           '欢迎来:https://github.com/MeowDWing/DanmakuReader'
                           '，或者b站私信：吾名喵喵之翼',
                           tag='CTRL')
-        ios.print_details('Tips:设置的内容还没做好，建议所有更改现在查看里看',
+        ios.print_details('Tips:设置只设置程序行为，如果想更改屏蔽词/最低读取等级等信息，请在c.查看中修改',
                           tag='CTRL')
 
         print('>>>', end='')

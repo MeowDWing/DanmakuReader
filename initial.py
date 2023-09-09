@@ -1,6 +1,6 @@
 import os
 import time
-from iosetting import JsonParse
+from iosetting import JsonParser
 
 
 def initial():
@@ -32,7 +32,7 @@ def _initial():
         'ac_time_value': None,
     }
 
-    JsonParse.dump('./files/INITIAL', initial_dict, mode='w')
+    JsonParser.dump('./files/INITIAL', initial_dict, mode='w')
 
     try:
         with open('ban_word.txt', mode='r'):
@@ -69,7 +69,7 @@ def settings_initial():
         }
     }
 
-    JsonParse.dump('./files/settings.txt', dicts, mode='w')
+    JsonParser.dump('./files/settings.txt', dicts, mode='w')
 
 
 
