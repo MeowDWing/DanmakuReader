@@ -18,6 +18,7 @@ def main():
     multiprocessing.freeze_support()
     print('正在检测初始化...')
     initial.initial()
+    login_flag = False
     while True:
         os.system('cls')
         interface.interface(
@@ -57,11 +58,11 @@ def main():
         get = input()
         get = get.strip()
 
-        label = get[0].upper()
+        label = get.upper()
         match label:
-            case 'B': interface.MFunc.begin()
+            case 'B': interface.MFunc.begin(login_flag)
             case 'C': interface.MFunc.check()
-            case 'L': interface.MFunc.login()
+            case 'L': login_flag = interface.MFunc.login()
             case 'R': interface.MFunc.reset()
             case 'U': interface.MFunc.updatec()
             case 'S': interface.MFunc.setting()

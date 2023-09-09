@@ -23,7 +23,8 @@ class LiveInfoGet:
 
     def __init__(self, g_queue: multiprocessing.Queue,
                  uid: int = -1, rid: int = -1,  # id zone
-                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼', debug_flag: bool = False):
+                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼',
+                 debug_flag: bool = False, login_flag: bool = False):
         """
         你可以输入房间号或者uid的任何一个，代码会自动获取另一个
 
@@ -41,7 +42,7 @@ class LiveInfoGet:
         self.debug_flag = debug_flag
 
         self.__PREFIX = 'Rec'
-        if os.path.exists('./files/login'):
+        if os.path.exists('./files/login') or login_flag:
             sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
             self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
                                                      ac_time_value=ac_time_value)
@@ -78,37 +79,20 @@ class LiveInfoGet:
         self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
 
     def get_settings(self):
-        should_have = set()
-        should_have.update(['rid', 'min_level'])
-        with open('./files/settings.txt', mode='r', encoding='utf-8') as f:
-            lines = f.readlines()
 
-        for line in lines:
-            if line[0] != '$':
-                line = line.strip().split('=')
-                if len(line) > 1:
-                    self.settings_dict[line[0]] = line[1]
-
-        for i in should_have:
-            if i not in self.settings_dict.keys():
-                ios.print_details(f'{i}似乎设置出错了', tag='WARNING')
-                time.sleep(3)
+        self.settings_dict = ios.JsonParse.load('./files/settings.txt')['basic_setting']
 
         if self.settings_dict['min_level'] == '0':
             self.read_any_lvl = True
 
     def get_credentials(self):
-        with open('./files/INITIAL', mode='r', encoding='utf-8') as f:
-            lines = f.readlines()
-        if len(lines) > 0:
-            s = lines[3][9:-1]
-            b = lines[4][9:-1]
-            b3 = lines[5][7:-1]
-            if b3 == 'None':
-                b3 = None
-            a = lines[6][14:-1]
-        else:
-            s = b = b3 = a = None
+        c_dict = ios.JsonParse.load('./files/INITIAL')
+
+        s = c_dict['sessdate']
+        b = c_dict['bili_jct']
+        b3 = c_dict['buvid3']
+        a = c_dict['ac_time_value']
+
         return s, b, b3, a
 
     def living_on(self):

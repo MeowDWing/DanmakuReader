@@ -68,6 +68,9 @@ def interface(proj_name: str, set_dict: dict, version: str, location: str, pflag
         elif pflag:
             print(f"|*|        {'P(p).上一级'.ljust(44-3)}{'E(e).退出'.ljust(22-2)}|*|")
             print(f"|*|{' ' * 74}|*|")
+        else:
+            print(f"|*|        {' '.ljust(44)}{'E(e).退出'.ljust(22 - 2)}|*|")
+            print(f"|*|{' ' * 74}|*|")
     print(f"|*{'=' * 76}*|")
 
     # print('|*===================================================================*|\n'
@@ -113,7 +116,7 @@ class MFunc:
             return
 
     @staticmethod
-    def begin():
+    def begin(login_flag):
 
         __global_queue = multiprocessing.Queue(233)
         print('正在读取房间号...')
@@ -126,7 +129,7 @@ class MFunc:
                 rid = int(line[1])
 
         print('正在初始化弹幕获取器...')
-        process_receiver = multiprocessing.Process(target=receiver, args=(__global_queue, rid,))
+        process_receiver = multiprocessing.Process(target=receiver, args=(__global_queue, rid, login_flag))
 
         print("正在初始化阅读器...")
         process_reader = multiprocessing.Process(target=reader, args=(__global_queue,))
@@ -198,7 +201,8 @@ class MFunc:
                 set_dict={
                     'a': '验证码',
                     'b': '账号密码',
-                    'c': '二维码'
+                    'c': '二维码',
+                    'n': '我不想登录'
                 },
                 pflag=True, eflag=True,
             )
@@ -209,55 +213,21 @@ class MFunc:
                 case 'A': credentials = LoginFunc.login_by_sms()
                 case 'B': credentials, sign, pw = LoginFunc.login_by_pw()
                 case 'C': credentials = LoginFunc.qrcode()
+                case 'N': LoginFunc.get_from_web()
                 case 'P': return
                 case 'E': exit(0)
 
             if credentials is not None:
                 if sign != 'False' and pw != 'False':
-                    with open('./files/INITIAL', mode='w', encoding='utf-8') as f:
-                        credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
-                        lines = [
-                            '本文件行对应，请勿以任何方式更改本文件\n',
-                            f'sign={sign}\n',
-                            f'pw={pw}\n',
-                            f'sessdate={credentials.sessdata}\n',
-                            f'bili_jct={credentials.bili_jct}\n',
-                            f'buvid3={credentials.buvid3}\n',
-                            f'ac_time_value={credentials.ac_time_value}\n'
-                        ]
-                        f.writelines(lines)
-                    ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
-                                     f'bili_jct:...{credentials.bili_jct[-6:]}\n'
-                                     f'buvid3:...{credentials.buvid3[-6:]}\n'
-                                     f'ac_time_value:...{credentials.ac_time_value[-6:]}\n'
-                                     '如果上述内容中出现规则内容或者buvid3中没有infoc字样，请重新登陆', base='CTRL')
-                    ios.print_simple('保存完毕', base='CTRL')
-                    time.sleep(1)
-                    return
-
-                else:
-                    with open('./files/INITIAL', mode='r', encoding='utf-8') as f:
-                        lines = f.readlines()
-                        if len(lines) > 0:
-                            if len(lines[1]) > 7 and len(lines[2]) > 5:
-                                sign = lines[1][5:-1]
-                                pw = lines[2][3:-1]
-                            else:
-                                sign = ''
-                                pw = ''
-
-                    with open('./files/INITIAL', mode='w', encoding='utf-8') as f:
-                        credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
-                        lines = [
-                            '本文件行对应，除非理解程序逻辑，否则请勿以任何方式更改本文件\n',
-                            f'sign={sign}\n',
-                            f'pw={pw}\n',
-                            f'sessdate={credentials.sessdata}\n',
-                            f'bili_jct={credentials.bili_jct}\n',
-                            f'buvid3={credentials.buvid3}\n',
-                            f'ac_time_value={credentials.ac_time_value}\n'
-                        ]
-                        f.writelines(lines)
+                    credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
+                    set_dict = ios.JsonParse.load('./files/INITIAL')
+                    set_dict['id'] = sign
+                    set_dict['pw'] = pw
+                    set_dict['sessdate'] = credentials.sessdata
+                    set_dict['bili_jct'] = credentials.bili_jct
+                    set_dict['buvid'] = credentials.buvid3
+                    set_dict['ac_time_value'] = credentials.ac_time_value
+                    ios.JsonParse.dump('./files/INITIAL', set_dict, mode='w')
                     ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
                                      f'bili_jct:...{credentials.bili_jct[-6:]}\n'
                                      f'buvid3:...{credentials.buvid3[-6:]}\n'
@@ -265,6 +235,25 @@ class MFunc:
                                      '如果上述内容中出现规则内容或者buvid3中没有infoc字样，请重新登陆', base='CTRL')
                     ios.print_simple('保存完毕', base='CTRL')
                     time.sleep(5)
+                    return True
+
+                else:
+
+                    credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
+                    set_dict = ios.JsonParse.load('./files/INITIAL')
+                    set_dict['sessdate'] = credentials.sessdata
+                    set_dict['bili_jct'] = credentials.bili_jct
+                    set_dict['buvid'] = credentials.buvid3
+                    set_dict['ac_time_value'] = credentials.ac_time_value
+                    ios.JsonParse.dump('./files/INITIAL', set_dict, mode='w')
+                    ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
+                                     f'bili_jct:...{credentials.bili_jct[-6:]}\n'
+                                     f'buvid3:...{credentials.buvid3[-6:]}\n'
+                                     f'ac_time_value:...{credentials.ac_time_value[-6:]}\n'
+                                     '如果上述内容中出现规则内容或者buvid3中没有infoc字样，请重新登陆', base='CTRL')
+                    ios.print_simple('保存完毕', base='CTRL')
+                    time.sleep(5)
+                    return True
 
     @staticmethod
     def updatec():
@@ -351,7 +340,17 @@ class LoginFunc:
             time.sleep(3)
             return None
 
-
+    @staticmethod
+    def get_from_web():
+        os.system('cls')
+        ios.print_details('你可以通过以下方式登录：\n'
+                          '图文步骤见：https://nemo2011.github.io/bilibili-api/#/get-credential\n'
+                          '1.打开网页版bilibili，登录账号，并按F12检查元素\n'
+                          '2.在标签栏选择应用（application）-> cookies -> https://www.bilibili.com\n'
+                          '3.以文本形式打开files文件夹中的INITIAL，并在对应位置填入名称对应的值\n'
+                          '[Tips]截至版本更新时，只需填入sessdate和buvid3即可\n'
+                          '4.确保在s.设置里打开自动登录（显示Y即为打开，输入对应字母切换开启/关闭状态）', tag='UP')
+        input('好的,我知道了(enter)')
 
 
 class SetFunc:
@@ -368,9 +367,8 @@ class SetFunc:
         return login_flag
 
 
-
-def receiver(_g_queue: multiprocessing.Queue, rid: int = 34162):
-    x = lg.LiveInfoGet(rid=rid, g_queue=_g_queue)
+def receiver(_g_queue: multiprocessing.Queue, rid: int = 34162, login_flag=False):
+    x = lg.LiveInfoGet(rid=rid, g_queue=_g_queue, login_flag=login_flag)
     x.living_on()
 
 
