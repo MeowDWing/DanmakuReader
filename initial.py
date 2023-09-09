@@ -66,6 +66,11 @@ def settings_initial():
             'what': '直播间主属性',
             'rid': 34162,
             'min_level': 1,
+        },
+        'sys_setting': {
+            'what': '系统行为设置',
+            'login': False,
+            'debug': False,
         }
     }
 

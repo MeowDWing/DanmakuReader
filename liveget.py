@@ -5,6 +5,7 @@ from collections import deque
 import random
 import bilibili_api
 
+import interface
 import iosetting as ios
 from bilibili_api import live, sync, user, credential
 
@@ -23,28 +24,23 @@ class LiveInfoGet:
 
     def __init__(self, g_queue: multiprocessing.Queue,
                  up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼',
-                 debug_flag: bool = False, login_flag: bool = False):
+                 debug_flag: bool = False, login_flag_disposable: bool = False):
         """
 
         :param g_queue: 全局队列，多进程通信
         :param up_name: up的名字，用于标记弹幕显示颜色，无别的用处
         :param ctrl_name: 控制名，永远都是作者，改变弹幕显示颜色，如果以后有其他贡献者，会做成集合
         :param debug_flag: 是否debug，打包好后没有更改接口，以后会做接口
-        :param login_flag: 是否登录标记，用于检测登录
+        :param login_flag_disposable: 是否登录标记，用于检测登录
         """
 
-        # parameter initial zone
+        # 基本参数设置区 basic initial zone
         self.up_name = up_name
         self.ctrl_name = ctrl_name
         self.debug_flag = debug_flag
 
         self.__PREFIX = 'Rec'
-        if os.path.exists('./files/login') or login_flag:
-            sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
-            self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
-                                                     ac_time_value=ac_time_value)
-        else:
-            self.credentials = None
+
         self._queue = g_queue
         self.local_queue = deque()
         self.local_queue_len = len(self.local_queue)
@@ -52,13 +48,35 @@ class LiveInfoGet:
         if not os.path.exists('./files'):
             os.mkdir('./files')
 
-        # dictionary & list initial zone
+        # 设置信息获取区 settings initial zone
         self.settings_dict = {}
         self.read_any_lvl = False
         self.get_settings()
-        self.room_id = self.settings_dict['rid']
-        self.min_lvl = self.settings_dict['min_level']
+        self.room_id = self.settings_dict['basic_setting']['rid']
+        self.min_lvl = self.settings_dict['basic_setting']['min_level']
+        self.login_flag = self.settings_dict['sys_setting']['login']
+        self.debug_flag = self.settings_dict['sys_setting']['debug']
 
+        # 登录信息设置区 login info initial zone
+        if self.login_flag or login_flag_disposable:
+            sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
+            if sessdate is None and bili_jct is None and buvid3 is None and ac_time_value is None:
+                self.credentials = None
+                ios.print_details('自动登录开启，但信息为空，请检查INITIAL文件确保登录信息正确', tag='WARNING')
+            elif sessdate is None and buvid3 is None:
+                ios.print_details('关键信息配置有误，请检查sessdate和buvid3信息是否已配置', tag='WARNING')
+            elif buvid3 is None:
+                buvid3 = interface.TempFunc.get_buvid3()
+
+            self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
+                                                     ac_time_value=ac_time_value)
+        else:
+            self.credentials = None
+            ios.print_details('本次未登录，可能弹幕接收出错', tag='WARNING')
+
+
+
+        # 房间信息获取区 room info initial zone
         if self.room_id > 0:
             self.room = live.LiveRoom(room_display_id=self.room_id)
             self.room_info = sync(self.room.get_room_info())
@@ -75,12 +93,13 @@ class LiveInfoGet:
 
     def get_settings(self):
 
-        self.settings_dict = ios.JsonParser.load('./files/settings.txt')['basic_setting']
+        self.settings_dict = ios.JsonParser.load('./files/settings.txt')
 
-        if self.settings_dict['min_level'] == '0':
+        if self.settings_dict['basic_setting']['min_level'] == 0:
             self.read_any_lvl = True
 
-    def get_credentials(self):
+    @staticmethod
+    def get_credentials():
         c_dict = ios.JsonParser.load('./files/INITIAL')
 
         s = c_dict['sessdate']

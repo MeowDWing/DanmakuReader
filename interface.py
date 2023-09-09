@@ -258,10 +258,10 @@ class MFunc:
     @staticmethod
     def setting():
 
-        if os.path.exists('./files/login'):
-            login_flag = 'Y'
-        else:
-            login_flag = 'N'
+        setting_sys_dict = ios.JsonParser.load('./files/settings.txt')
+        login_flag = setting_sys_dict['sys_setting']['login']
+        debug_flag = setting_sys_dict['sys_setting']['debug']
+        change = False
 
         while True:
             os.system('cls')
@@ -271,15 +271,22 @@ class MFunc:
                 location='main->设置',
                 set_dict={
                     'a': f'自动登录 {login_flag}',
+                    'b': f'debug {debug_flag}',
                 },
                 eflag=True, pflag=True
             )
 
             get = input('>>>').strip().upper()
             match get:
-                case 'A': login_flag = SetFunc.auto_login(login_flag)
+                case 'A': login_flag, change = SetFunc.change_flag(login_flag)
+                case 'B': debug_flag, change = SetFunc.change_flag(debug_flag)
                 case 'P': return
                 case 'E': exit()
+
+            if change:
+                setting_sys_dict['sys_setting']['login'] = login_flag
+                setting_sys_dict['sys_setting']['debug'] = debug_flag
+                ios.JsonParser.dump('./files/settings.txt', setting_sys_dict, mode='w')
 
 
 class LoginFunc:
@@ -350,20 +357,23 @@ class LoginFunc:
 
 class SetFunc:
     @staticmethod
-    def auto_login(login_flag):
-        if login_flag == 'Y':
-            login_flag = 'N'
-            pathnow = os.getcwd()
-            os.remove('files/login')
-        else:
-            with open('./files/login', mode='w'):
-                login_flag = 'Y'
+    def change_flag(flag):
 
-        return login_flag
+        return not flag, True
+
+
+class TempFunc:
+    @staticmethod
+    def get_buvid3():
+        """
+
+        :return: 临时buvid3
+        """
+        return str(uuid.uuid1())+'infoc'
 
 
 def receiver(_g_queue: multiprocessing.Queue, login_flag=False):
-    x = lg.LiveInfoGet(g_queue=_g_queue, login_flag=login_flag)
+    x = lg.LiveInfoGet(g_queue=_g_queue, login_flag_disposable=login_flag)
     x.living_on()
 
 

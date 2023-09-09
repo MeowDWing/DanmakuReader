@@ -1,4 +1,3 @@
-import os
 import time
 from collections import deque
 import iosetting as ios
@@ -26,7 +25,7 @@ class Reader:
         self.ban_word_set = set("1234567890")
         self.re_ban_str = ''
         self.ban_word_set_initial()
-        self.symbol_set = set("~!@#$%^&*()_+=-`[]\\|}{;':\",./<>?~！@#￥%……&*（）——+=-|}{【】、|‘’；：“”《》？，。、")
+        self.re_only_some_symbol = re.compile("[^?？.。,，（）()]").search
         ios.print_details('本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在\n'
                           '\t\t\t------from a certain member of 保狐派', tag='CTRL')
         ios.print_details('本界面为debug界面，如果程序出现任何异常，请将本界面的错误信息发与作者', tag='TIPS')
@@ -73,8 +72,7 @@ class Reader:
 
                     if re_flag is None:
                         if c not in self.ban_word_set:
-                            c_set = set(c)
-                            if len(c_set - self.symbol_set) > 0:
+                            if self.re_only_some_symbol(c):
                                 self.danmaku_queue.append(c)
                                 self.danmaku_len += 1
                                 ios.print_details(c + ':加入了待读队列', tag='SPECIAL', head='QUEUE',
