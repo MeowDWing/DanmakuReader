@@ -1,8 +1,10 @@
 import os
 import time
+from iosetting import JsonParser
 
 
 def initial():
+
     try:
         with open('./files/INITIAL', mode='r'):
             pass
@@ -19,6 +21,18 @@ def _initial():
 
     with open('./files/INITIAL', mode='x'):
         pass
+
+    initial_dict = {
+        'what': '登录信息',
+        'id': None,
+        'pw': None,
+        'sessdate': None,
+        'bili_jct': None,
+        'buvid3': None,
+        'ac_time_value': None,
+    }
+
+    JsonParser.dump('./files/INITIAL', initial_dict, mode='w')
 
     try:
         with open('ban_word.txt', mode='r'):
@@ -47,14 +61,20 @@ def _initial():
 
 def settings_initial():
 
-    lines = [
-        '$直播主属性\n',
-        'rid=34162\n',
-        'min_level=1\n',
-    ]
+    dicts = {
+        'basic_setting': {
+            'what': '直播间主属性',
+            'rid': 34162,
+            'min_level': 1,
+        },
+        'sys_setting': {
+            'what': '系统行为设置',
+            'login': False,
+            'debug': False,
+        }
+    }
 
-    with open('./files/settings.txt', mode='w', encoding='utf-8') as f:
-        f.writelines(lines)
+    JsonParser.dump('./files/settings.txt', dicts, mode='w')
 
 
 

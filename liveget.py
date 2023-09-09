@@ -5,6 +5,7 @@ from collections import deque
 import random
 import bilibili_api
 
+import interface
 import iosetting as ios
 from bilibili_api import live, sync, user, credential
 
@@ -22,54 +23,65 @@ class UserInfoError(Exception):
 class LiveInfoGet:
 
     def __init__(self, g_queue: multiprocessing.Queue,
-                 uid: int = -1, rid: int = -1,  # id zone
-                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼', debug_flag: bool = False):
+                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼',
+                 debug_flag: bool = False, login_flag_disposable: bool = False):
         """
-        你可以输入房间号或者uid的任何一个，代码会自动获取另一个
 
-        you can Enter any of rid or uid or not all of them
-
-        :param uid: get in homepage(e.g. https://space.bilibili.com/3117538/ is 3117538)
-        :param rid: live room id which is got in live homepage(e.g. https://live.bilibili.com/34162 is 34162)
-        :param up_name(str): up名，默认是资深小狐狸 / UP name, default is 资深小狐狸
+        :param g_queue: 全局队列，多进程通信
+        :param up_name: up的名字，用于标记弹幕显示颜色，无别的用处
+        :param ctrl_name: 控制名，永远都是作者，改变弹幕显示颜色，如果以后有其他贡献者，会做成集合
+        :param debug_flag: 是否debug，打包好后没有更改接口，以后会做接口
+        :param login_flag_disposable: 是否登录标记，用于检测登录
         """
-        # parameter initial zone
-        self.room_id = rid
-        self.user_id = uid
+
+        # 基本参数设置区 basic initial zone
         self.up_name = up_name
         self.ctrl_name = ctrl_name
         self.debug_flag = debug_flag
 
         self.__PREFIX = 'Rec'
-        if os.path.exists('./files/login'):
-            sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
-            self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
-                                                     ac_time_value=ac_time_value)
-        else:
-            self.credentials = None
+
         self._queue = g_queue
         self.local_queue = deque()
-        self.queue_flag = False
         self.local_queue_len = len(self.local_queue)
 
         if not os.path.exists('./files'):
             os.mkdir('./files')
 
-        os.system("cls")
-
-        # dictionary & list initial zone
+        # 设置信息获取区 settings initial zone
         self.settings_dict = {}
         self.read_any_lvl = False
         self.get_settings()
+        self.room_id = self.settings_dict['basic_setting']['rid']
+        self.min_lvl = self.settings_dict['basic_setting']['min_level']
+        self.login_flag = self.settings_dict['sys_setting']['login']
+        self.debug_flag = self.settings_dict['sys_setting']['debug']
 
-        if self.user_id > 0:
-            self.user_detail = user.User(uid=self.user_id, credential=self.credentials)
-            self.user_info = sync(self.user_detail.get_live_info())
-            self.room_id = self.user_info['live_room']['roomid']
+        # 登录信息设置区 login info initial zone
+        if self.login_flag or login_flag_disposable:
+            sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
+            if sessdate is None and bili_jct is None and buvid3 is None and ac_time_value is None:
+                self.credentials = None
+                ios.print_details('自动登录开启，但信息为空，请检查INITIAL文件确保登录信息正确', tag='WARNING')
+            elif sessdate is None and buvid3 is None:
+                ios.print_details('关键信息配置有误，请检查sessdate和buvid3信息是否已配置', tag='WARNING')
+            elif buvid3 is None:
+                buvid3 = interface.TempFunc.get_buvid3()
+
+            self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
+                                                     ac_time_value=ac_time_value)
+        else:
+            self.credentials = None
+            ios.print_details('本次未登录，可能弹幕接收出错', tag='WARNING')
+
+
+
+        # 房间信息获取区 room info initial zone
         if self.room_id > 0:
             self.room = live.LiveRoom(room_display_id=self.room_id)
             self.room_info = sync(self.room.get_room_info())
             self.user_id = self.room_info['room_info']['uid']
+            self.up_name = self.room_info['anchor_info']['base_info']['uname']
             if self.room_info['anchor_info']['medal_info'] is not None:
                 self.fans_badge = self.room_info['anchor_info']['medal_info']['medal_name']
             else:
@@ -80,37 +92,21 @@ class LiveInfoGet:
         self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
 
     def get_settings(self):
-        should_have = set()
-        should_have.update(['rid', 'min_level'])
-        with open('./files/settings.txt', mode='r', encoding='utf-8') as f:
-            lines = f.readlines()
 
-        for line in lines:
-            if line[0] != '$':
-                line = line.strip().split('=')
-                if len(line) > 1:
-                    self.settings_dict[line[0]] = line[1]
+        self.settings_dict = ios.JsonParser.load('./files/settings.txt')
 
-        for i in should_have:
-            if i not in self.settings_dict.keys():
-                ios.print_details(f'{i}似乎设置出错了', tag='WARNING')
-                time.sleep(3)
-
-        if self.settings_dict['min_level'] == '0':
+        if self.settings_dict['basic_setting']['min_level'] == 0:
             self.read_any_lvl = True
 
-    def get_credentials(self):
-        with open('./files/INITIAL', mode='r', encoding='utf-8') as f:
-            lines = f.readlines()
-        if len(lines) > 0:
-            s = lines[3][9:-1]
-            b = lines[4][9:-1]
-            b3 = lines[5][7:-1]
-            if b3 == 'None':
-                b3 = None
-            a = lines[6][14:-1]
-        else:
-            s = b = b3 = a = None
+    @staticmethod
+    def get_credentials():
+        c_dict = ios.JsonParser.load('./files/INITIAL')
+
+        s = c_dict['sessdate']
+        b = c_dict['bili_jct']
+        b3 = c_dict['buvid3']
+        a = c_dict['ac_time_value']
+
         return s, b, b3, a
 
     def living_on(self):
@@ -119,12 +115,12 @@ class LiveInfoGet:
         async def on_danmaku(event):  # event -> dictionary
             if self.debug_flag:
                 ios.print_details('danmaku'+str(random.randint(0, 50000))+'='+str(event), debug_flag=True)
-            self.live_danmaku(event)
+            self.danmaku_processing(event)
         ios.print_details('弹幕开启', tag='SYSTEM')
 
         sync(self.room_event_stream.connect())
 
-    def live_danmaku(self, event: dict = None):
+    def danmaku_processing(self, event: dict = None):
 
         user_fans_lvl = 0
         print_flag = 'NORMAL'
@@ -141,9 +137,10 @@ class LiveInfoGet:
             if user_fans_info[1] == self.fans_badge:
                 print_flag = 'FANS'
                 user_fans_lvl = user_fans_info[0]
-                if user_fans_lvl > 20:
+                if user_fans_lvl > 19:
                     print_flag = 'CAPTAIN'
-                if_read = True
+                if user_fans_lvl >= self.min_lvl:
+                    if_read = True
 
         if len(danmaku_content) > 0 and (self.read_any_lvl or if_read):
             if not self._queue.full():
