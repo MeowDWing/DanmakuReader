@@ -3,11 +3,10 @@ import os
 import time
 from collections import deque
 import random
-import bilibili_api
 
 import interface
 import iosetting as ios
-from bilibili_api import live, sync, user, credential
+from bilibili_api import live, sync, credential
 
 
 # Exception Zone
@@ -24,15 +23,17 @@ class LiveInfoGet:
 
     def __init__(self, g_queue: multiprocessing.Queue,
                  up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼',
-                 debug_flag: bool = False, login_flag_disposable: bool = False):
+                 debug_flag: bool = False, offline: bool = False):
         """
 
         :param g_queue: 全局队列，多进程通信
         :param up_name: up的名字，用于标记弹幕显示颜色，无别的用处
         :param ctrl_name: 控制名，永远都是作者，改变弹幕显示颜色，如果以后有其他贡献者，会做成集合
         :param debug_flag: 是否debug，打包好后没有更改接口，以后会做接口
-        :param login_flag_disposable: 是否登录标记，用于检测登录
+        :param offline: 离线模式标记，用于检测是否需要导入cookie
         """
+        # 一次性参数区
+        need_login = False
 
         # 基本参数设置区 basic initial zone
         self.up_name = up_name
@@ -57,24 +58,34 @@ class LiveInfoGet:
         self.login_flag = self.settings_dict['sys_setting']['login']
         self.debug_flag = self.settings_dict['sys_setting']['debug']
 
-        # 登录信息设置区 login info initial zone
-        if self.login_flag or login_flag_disposable:
+        if not offline:
+            # 登录信息设置区 login info initial zone
             sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
+
             if sessdate is None and bili_jct is None and buvid3 is None and ac_time_value is None:
                 self.credentials = None
-                ios.print_details('自动登录开启，但信息为空，请检查INITIAL文件确保登录信息正确', tag='WARNING')
+                ios.print_details('请检查INITIAL文件确保登录信息正确', tag='WARNING')
+                time.sleep(3)
             elif sessdate is None and buvid3 is None:
                 ios.print_details('关键信息配置有误，请检查sessdate和buvid3信息是否已配置', tag='WARNING')
+                time.sleep(3)
             elif buvid3 is None:
                 buvid3 = interface.TempFunc.get_buvid3()
 
             self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
                                                      ac_time_value=ac_time_value)
-        else:
+
+            # cookie 刷新与自动登录区 cookie refresh and login Zone
+            need_login = sync(self.credentials.check_valid())
+
+            if self.login_flag and need_login:
+                self.credentials = interface.LoginFunc.semi_autologin()
+                interface.LoginFunc.save_credentials(self.credentials)
+            elif need_login:
+                ios.print_simple('登录cookie需要更新，如需登录请重启程序并登录', base='WARNING')
+
+        else:  # if offline
             self.credentials = None
-            ios.print_details('本次未登录，可能弹幕接收出错', tag='WARNING')
-
-
 
         # 房间信息获取区 room info initial zone
         if self.room_id > 0:
