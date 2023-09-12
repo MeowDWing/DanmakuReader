@@ -25,6 +25,10 @@ def _initial():
         print('正在创建files文件夹')
         os.mkdir('./files')
 
+    if not os.path.exists('./logging'):
+        print('正在创建files文件夹')
+        os.mkdir('./logging')
+
     with open('./files/INITIAL', mode='x'):
         pass
 

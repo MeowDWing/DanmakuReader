@@ -3,14 +3,17 @@ import time
 import uuid
 import bilibili_api
 
+import global_setting
 import iosetting as ios
+import liveget as lg
+import reader as rd
+
 import os
 import re
 import main
 import multiprocessing
 import initial
-import liveget as lg
-import reader as rd
+
 from bilibili_api.login import login_with_password, login_with_sms, send_sms, PhoneNumber
 from bilibili_api import login, sync, settings, exceptions
 from bilibili_api.credential import Credential
@@ -142,9 +145,9 @@ class MFunc:
         while True:
             os.system('cls')
             interface(
-                proj_name=main.__PROJ_NAME__,
+                proj_name=global_setting.proj_name,
                 location='main -> 查看',
-                version=main.__VERSION__,
+                version=global_setting.version,
                 set_dict={
                     'b': '禁读词列表',
                     's': '设置'
@@ -190,8 +193,8 @@ class MFunc:
         while True:
             os.system('cls')
             interface(
-                proj_name=main.__PROJ_NAME__,
-                version=main.__VERSION__,
+                proj_name=global_setting.proj_name,
+                version=global_setting.version,
                 location='main->登录',
                 set_dict={
                     'a': '验证码',
@@ -254,7 +257,7 @@ class MFunc:
 
     @staticmethod
     def updatec():
-        update_content(main.__VERSION__)
+        update_content(global_setting.version)
         input("很好，我知道了！（Enter退出）")
 
     @staticmethod
@@ -268,8 +271,8 @@ class MFunc:
         while True:
             os.system('cls')
             interface(
-                proj_name=main.__PROJ_NAME__,
-                version=main.__VERSION__,
+                proj_name=global_setting.proj_name,
+                version=global_setting.version,
                 location='main->设置',
                 set_dict={
                     'a': f'自动登录 {login_flag}',
@@ -434,7 +437,7 @@ def file_clearer(path):
 if __name__ == '__main__':
     interface(
         proj_name='DanmakuReader',
-        version=main.__VERSION__,
+        version=global_setting.version,
         set_dict={
             'a': '初始化',
             'b': '启动',
