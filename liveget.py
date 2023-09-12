@@ -76,7 +76,7 @@ class LiveInfoGet:
                                                      ac_time_value=ac_time_value)
 
             # cookie 刷新与自动登录区 cookie refresh and login Zone
-            need_login = sync(self.credentials.check_valid())
+            need_login = not sync(self.credentials.check_valid())
 
             if self.login_flag and need_login:
                 self.credentials = interface.LoginFunc.semi_autologin()

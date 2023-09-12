@@ -4,9 +4,9 @@
 
 --------
 
-**<font size=4>请在每次拿到新版本后输入u进入更新说明查看更新内容</font>**
+**<font size=8>请在每次拿到新版本后输入u进入更新说明查看更新内容</font>**
 
-<font size=6>注意：由于b站更新问题，如果你使用python版本，请用dev版本的api包，你可以通过
+<font size=12>注意：由于b站更新问题，如果你使用python版本，请用dev版本的api包，你可以通过
 
 `pip install bilibili-api-dev=16.0.0b2`
 
@@ -115,3 +115,13 @@
 * Q:我该怎么帮助狐宝或者作者？
   * A:你可以访问本项目的github页面提issue或者在b站联系：吾名喵喵之翼。作者只要闲着看到就会回复你（大概会在每天的23点后）
   * 仓库地址：https://github.com/MeowDWing/DanmakuReader
+
+
+------
+
+## 更新计划
+
++ 2-2 ： 登录系统
++ 2-3 ： debug与logging
++ 2-4 ： 报错系统
++ 2-5 ： 自订设置优化

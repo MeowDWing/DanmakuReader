@@ -187,7 +187,6 @@ class MFunc:
     def login():
         credentials: Credential | None = None
         sign = pw = 'False'
-        settings.geetest_auto_open = True
         while True:
             os.system('cls')
             interface(
@@ -217,13 +216,13 @@ class MFunc:
 
             if credentials is not None:
                 if sign != 'False' and pw != 'False':
-                    credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
+                    credentials.buvid3 = str(uuid.uuid1()).lower() + 'infoc'
                     set_dict = ios.JsonParser.load('./files/INITIAL')
                     set_dict['id'] = sign
                     set_dict['pw'] = pw
                     set_dict['sessdate'] = credentials.sessdata
                     set_dict['bili_jct'] = credentials.bili_jct
-                    set_dict['buvid'] = credentials.buvid3
+                    set_dict['buvid3'] = credentials.buvid3
                     set_dict['ac_time_value'] = credentials.ac_time_value
                     ios.JsonParser.dump('./files/INITIAL', set_dict, mode='w')
                     ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
@@ -237,11 +236,11 @@ class MFunc:
 
                 else:
 
-                    credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
+                    credentials.buvid3 = str(uuid.uuid1()).lower() + 'infoc'
                     set_dict = ios.JsonParser.load('./files/INITIAL')
                     set_dict['sessdate'] = credentials.sessdata
                     set_dict['bili_jct'] = credentials.bili_jct
-                    set_dict['buvid'] = credentials.buvid3
+                    set_dict['buvid3'] = credentials.buvid3
                     set_dict['ac_time_value'] = credentials.ac_time_value
                     ios.JsonParser.dump('./files/INITIAL', set_dict, mode='w')
                     ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
@@ -412,7 +411,7 @@ class TempFunc:
 
         :return: 临时buvid3
         """
-        return str(uuid.uuid1())+'infoc'
+        return str(uuid.uuid1()).lower() + 'infoc'
 
 
 def receiver(_g_queue: multiprocessing.Queue, offline=False):

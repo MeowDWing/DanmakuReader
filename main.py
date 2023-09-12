@@ -1,7 +1,9 @@
+# !/
+
 import os
 import time
 import multiprocessing
-
+from bilibili_api import settings
 import interface
 import iosetting as ios
 import initial
@@ -12,11 +14,22 @@ __PROJ_NAME__ = 'Danmaku  Reader'
 __PREFIX = 'Mainc'
 
 
+def sys_init():
+    """
+
+        系统全局变量设置初始化
+
+    """
+
+    settings.geetest_auto_open = True
+
+
 def main():
 
     multiprocessing.freeze_support()
     print('正在检测初始化...')
     initial.initial()
+    sys_init()
     while True:
         os.system('cls')
         interface.interface(
