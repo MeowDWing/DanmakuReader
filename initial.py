@@ -1,3 +1,9 @@
+"""
+
+    系统初始化-》 包含各种文件的初始化与重置函数
+
+"""
+
 import os
 import time
 from iosetting import JsonParser

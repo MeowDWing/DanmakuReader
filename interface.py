@@ -1,3 +1,4 @@
+import sys
 import time
 import uuid
 import bilibili_api
@@ -118,13 +119,13 @@ class MFunc:
             return
 
     @staticmethod
-    def begin(login_flag):
+    def begin():
 
         __global_queue = multiprocessing.Queue(233)
         print('正在读取房间号...')
 
         print('正在初始化弹幕获取器...')
-        process_receiver = multiprocessing.Process(target=receiver, args=(__global_queue, login_flag))
+        process_receiver = multiprocessing.Process(target=receiver, args=(__global_queue,))
 
         print("正在初始化阅读器...")
         process_reader = multiprocessing.Process(target=reader, args=(__global_queue,))
@@ -184,9 +185,8 @@ class MFunc:
 
     @staticmethod
     def login():
-        credentials: Credential = Credential()
+        credentials: Credential | None = None
         sign = pw = 'False'
-        settings.geetest_auto_open = True
         while True:
             os.system('cls')
             interface(
@@ -197,6 +197,7 @@ class MFunc:
                     'a': '验证码',
                     'b': '账号密码',
                     'c': '二维码',
+                    'd': '已存账号密码登录',
                     'n': '我不想登录'
                 },
                 pflag=True, eflag=True,
@@ -208,19 +209,20 @@ class MFunc:
                 case 'A': credentials = LoginFunc.login_by_sms()
                 case 'B': credentials, sign, pw = LoginFunc.login_by_pw()
                 case 'C': credentials = LoginFunc.qrcode()
+                case 'D': credentials = LoginFunc.semi_autologin()
                 case 'N': LoginFunc.get_from_web()
                 case 'P': return
                 case 'E': exit(0)
 
             if credentials is not None:
                 if sign != 'False' and pw != 'False':
-                    credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
+                    credentials.buvid3 = str(uuid.uuid1()).lower() + 'infoc'
                     set_dict = ios.JsonParser.load('./files/INITIAL')
                     set_dict['id'] = sign
                     set_dict['pw'] = pw
                     set_dict['sessdate'] = credentials.sessdata
                     set_dict['bili_jct'] = credentials.bili_jct
-                    set_dict['buvid'] = credentials.buvid3
+                    set_dict['buvid3'] = credentials.buvid3
                     set_dict['ac_time_value'] = credentials.ac_time_value
                     ios.JsonParser.dump('./files/INITIAL', set_dict, mode='w')
                     ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
@@ -230,15 +232,15 @@ class MFunc:
                                      '如果上述内容中出现规则内容或者buvid3中没有infoc字样，请重新登陆', base='CTRL')
                     ios.print_simple('保存完毕', base='CTRL')
                     time.sleep(5)
-                    return True
+                    return
 
                 else:
 
-                    credentials.buvid3 = str(uuid.uuid1()) + 'infoc'
+                    credentials.buvid3 = str(uuid.uuid1()).lower() + 'infoc'
                     set_dict = ios.JsonParser.load('./files/INITIAL')
                     set_dict['sessdate'] = credentials.sessdata
                     set_dict['bili_jct'] = credentials.bili_jct
-                    set_dict['buvid'] = credentials.buvid3
+                    set_dict['buvid3'] = credentials.buvid3
                     set_dict['ac_time_value'] = credentials.ac_time_value
                     ios.JsonParser.dump('./files/INITIAL', set_dict, mode='w')
                     ios.print_simple(f'sessdate:...{credentials.sessdata[-6:]}\n'
@@ -248,7 +250,7 @@ class MFunc:
                                      '如果上述内容中出现规则内容或者buvid3中没有infoc字样，请重新登陆', base='CTRL')
                     ios.print_simple('保存完毕', base='CTRL')
                     time.sleep(5)
-                    return True
+                    return
 
     @staticmethod
     def updatec():
@@ -275,7 +277,11 @@ class MFunc:
                 },
                 eflag=True, pflag=True
             )
-
+            ios.print_details(
+                '自动登录开启时，每次进入时会根据cookie状态选择是否登录，'
+                '自动登录时，需要打开网页输入验证码，'
+                '自动登录关闭时，程序只会使用cookie登录而不检测是否过期\n', tag='TIPS'
+            )
             get = input('>>>').strip().upper()
             match get:
                 case 'A': login_flag, change = SetFunc.change_flag(login_flag)
@@ -292,10 +298,13 @@ class MFunc:
 class LoginFunc:
 
     @staticmethod
-    def login_by_pw():
-        username = input("请输入手机号/邮箱：")
-        password = input("请输入密码：")
-        print("正在登录。")
+    def login_by_pw(username: str | None = None, password: str | None = None, from_sys=False):
+        if from_sys:
+            print('系统登录')
+        else:
+            username = input("请输入手机号/邮箱：")
+            password = input("请输入密码：")
+            print("正在登录。")
         try:
             c = login_with_password(username, password)
         except exceptions.LoginError as el:
@@ -343,6 +352,26 @@ class LoginFunc:
             return None
 
     @staticmethod
+    def semi_autologin(in_run: bool = False):
+        login_info = ios.JsonParser.load('./files/INITIAL')
+        username = login_info['id']
+        pw = login_info['pw']
+        if username is not None and pw is not None:
+            credentials, _, _ = LoginFunc.login_by_pw(username=username, password=pw, from_sys=True)
+        else:
+            credentials = None
+
+        if credentials is None:
+            ios.print_details('自动登录失败，请尝试手动登录', tag='SYSTEM', head='ERROR')
+            time.sleep(3)
+            if in_run:
+                exit()
+            else:
+                return credentials  # None
+        else:
+            return credentials
+
+    @staticmethod
     def get_from_web():
         os.system('cls')
         ios.print_details('你可以通过以下方式登录：\n'
@@ -353,6 +382,19 @@ class LoginFunc:
                           '[Tips]截至版本更新时，只需填入sessdate和buvid3即可\n'
                           '4.确保在s.设置里打开自动登录（显示Y即为打开，输入对应字母切换开启/关闭状态）', tag='UP')
         input('好的,我知道了(enter)')
+
+    @staticmethod
+    def save_credentials(c: Credential | None = None) -> bool:
+        if c is None:
+            return False
+        else:
+            cdict = ios.JsonParser.load('./files/INITIAL')
+            cdict['sessdate'] = c.sessdata
+            cdict['bili_jct'] = c.bili_jct
+            cdict['buvid3'] = c.buvid3
+            cdict['ac_time_value'] = c.ac_time_value
+            ios.JsonParser.dump('./files/INITIAL', cdict, mode='w')
+            return True
 
 
 class SetFunc:
@@ -369,11 +411,11 @@ class TempFunc:
 
         :return: 临时buvid3
         """
-        return str(uuid.uuid1())+'infoc'
+        return str(uuid.uuid1()).lower() + 'infoc'
 
 
-def receiver(_g_queue: multiprocessing.Queue, login_flag=False):
-    x = lg.LiveInfoGet(g_queue=_g_queue, login_flag_disposable=login_flag)
+def receiver(_g_queue: multiprocessing.Queue, offline=False):
+    x = lg.LiveInfoGet(g_queue=_g_queue, offline=offline)
     x.living_on()
 
 
