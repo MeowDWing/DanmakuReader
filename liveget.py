@@ -4,6 +4,7 @@ import time
 from collections import deque
 import random
 
+import global_setting
 import interface
 import iosetting as ios
 from bilibili_api import live, sync, credential
@@ -23,7 +24,7 @@ class LiveInfoGet:
 
     def __init__(self, g_queue: multiprocessing.Queue,
                  up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼',
-                 debug_flag: bool = False, offline: bool = False):
+                 ):
         """
 
         :param g_queue: 全局队列，多进程通信
@@ -38,7 +39,6 @@ class LiveInfoGet:
         # 基本参数设置区 basic initial zone
         self.up_name = up_name
         self.ctrl_name = ctrl_name
-        self.debug_flag = debug_flag
 
         self.__PREFIX = 'Rec'
 
@@ -50,15 +50,16 @@ class LiveInfoGet:
             os.mkdir('./files')
 
         # 设置信息获取区 settings initial zone
-        self.settings_dict = {}
-        self.read_any_lvl = False
-        self.get_settings()
-        self.room_id = self.settings_dict['basic_setting']['rid']
-        self.min_lvl = self.settings_dict['basic_setting']['min_level']
-        self.login_flag = self.settings_dict['sys_setting']['login']
-        self.debug_flag = self.settings_dict['sys_setting']['debug']
+        self.room_id = global_setting.settings['basic_setting']['rid']
+        self.min_lvl = global_setting.settings['basic_setting']['min_level']
+        self.login_flag = global_setting.settings['sys_setting']['login']
+        self.debug_flag = global_setting.settings['sys_setting']['debug']
+        if self.min_lvl == 0:
+            self.read_any_lvl = True
+        else:
+            self.read_any_lvl = False
 
-        if not offline:
+        if not global_setting.offline:
             # 登录信息设置区 login info initial zone
             sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
 
@@ -102,12 +103,6 @@ class LiveInfoGet:
 
         self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
 
-    def get_settings(self):
-
-        self.settings_dict = ios.JsonParser.load('./files/settings.txt')
-
-        if self.settings_dict['basic_setting']['min_level'] == 0:
-            self.read_any_lvl = True
 
     @staticmethod
     def get_credentials():

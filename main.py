@@ -23,6 +23,8 @@ def sys_init():
 
     settings.geetest_auto_open = True
 
+    global_setting.load_setting()
+
 
 def main():
 

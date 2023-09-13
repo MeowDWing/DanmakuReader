@@ -179,6 +179,7 @@ class MFunc:
                     os.chdir(cwd + '/files')
                     os.system('settings.txt')
                     os.chdir(cwd)
+                    global_setting.load_setting()
                 case 'P':
                     return
                 case 'E':
@@ -263,9 +264,8 @@ class MFunc:
     @staticmethod
     def setting():
 
-        setting_sys_dict = ios.JsonParser.load('./files/settings.txt')
-        login_flag = setting_sys_dict['sys_setting']['login']
-        debug_flag = setting_sys_dict['sys_setting']['debug']
+
+
         change = False
 
         while True:
@@ -275,8 +275,8 @@ class MFunc:
                 version=global_setting.version,
                 location='main->设置',
                 set_dict={
-                    'a': f'自动登录 {login_flag}',
-                    'b': f'debug {debug_flag}',
+                    'a': f"自动登录 {global_setting.settings['sys_setting']['login']}",
+                    'b': f"debug {global_setting.settings['sys_setting']['debug']}",
                 },
                 eflag=True, pflag=True
             )
@@ -287,15 +287,17 @@ class MFunc:
             )
             get = input('>>>').strip().upper()
             match get:
-                case 'A': login_flag, change = SetFunc.change_flag(login_flag)
-                case 'B': debug_flag, change = SetFunc.change_flag(debug_flag)
+                case 'A':
+                    global_setting.settings['sys_setting']['login'], change = \
+                        SetFunc.change_flag(global_setting.settings['sys_setting']['login'])
+                case 'B':
+                    global_setting.settings['sys_setting']['debug'], change = \
+                        SetFunc.change_flag(global_setting.settings['sys_setting']['debug'])
                 case 'P': return
                 case 'E': exit()
 
             if change:
-                setting_sys_dict['sys_setting']['login'] = login_flag
-                setting_sys_dict['sys_setting']['debug'] = debug_flag
-                ios.JsonParser.dump('./files/settings.txt', setting_sys_dict, mode='w')
+                ios.JsonParser.dump('./files/settings.txt', global_setting.settings, mode='w')
 
 
 class LoginFunc:
@@ -314,15 +316,15 @@ class LoginFunc:
             c = None
             ios.print_details(el.msg, tag='WRONG', head='WRONG', prefix='LOGIN')
             time.sleep(1)
-            return None, 'False', 'False'
+            return c, 'False', 'False'
         if isinstance(c, login.Check):
             # 还需验证
             print("需要进行验证。请考虑使用验证码登录")
             return None, username, password
         else:
             credential = c
-            with open('./files/login', mode='w'):
-                pass
+            global_setting.settings['sys_setting']['login'] = True
+            global_setting.update_setting()
             return credential, username, password
 
     @staticmethod
@@ -380,7 +382,7 @@ class LoginFunc:
         ios.print_details('你可以通过以下方式登录：\n'
                           '图文步骤见：https://nemo2011.github.io/bilibili-api/#/get-credential\n'
                           '1.打开网页版bilibili，登录账号，并按F12检查元素\n'
-                          '2.在标签栏选择应用（application）-> cookies -> https://www.bilibili.com\n'
+                          '2.在标签栏选择应用（application）-> cookies -> https://xxx.bilibili.com(xxx可为live或www)\n'
                           '3.以文本形式打开files文件夹中的INITIAL，并在对应位置填入名称对应的值\n'
                           '[Tips]截至版本更新时，只需填入sessdate和buvid3即可\n'
                           '4.确保在s.设置里打开自动登录（显示Y即为打开，输入对应字母切换开启/关闭状态）', tag='UP')
