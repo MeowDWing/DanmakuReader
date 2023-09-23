@@ -30,8 +30,6 @@ class LiveInfoGet:
         :param g_queue: 全局队列，多进程通信
         :param up_name: up的名字，用于标记弹幕显示颜色，无别的用处
         :param ctrl_name: 控制名，永远都是作者，改变弹幕显示颜色，如果以后有其他贡献者，会做成集合
-        :param debug_flag: 是否debug，打包好后没有更改接口，以后会做接口
-        :param offline: 离线模式标记，用于检测是否需要导入cookie
         """
         # 一次性参数区
         need_login = False
@@ -102,7 +100,6 @@ class LiveInfoGet:
             raise UserInfoError("User_id maybe wrong, please check again")
 
         self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
-
 
     @staticmethod
     def get_credentials():

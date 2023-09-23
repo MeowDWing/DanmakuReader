@@ -1,5 +1,6 @@
 import json
 import time
+from enum import Enum
 from collections.abc import Iterable
 
 _iosetting__tag_dict = {
@@ -29,6 +30,20 @@ _iosetting__head_set = {
     'WARNING',
     'TIPS'
 }
+
+
+class Color(Enum):
+    red = "#FF0000"
+    green = "#00FF00"
+    blue = "#0000FF"
+    black = "#000000"
+    white = "#FFFFFF"
+    snow = "#FFFAFA"
+    azure = "#F0FFFF"
+    aquamarine = "#7FFFD4"
+    yellow = "#FFFF00"
+    orange = "#FFA500"
+    purple = "#A020F0"
 
 
 def print_simple(text: str, base: str = 'NORMAL',
@@ -118,7 +133,7 @@ def logging(filename: str, txt: Iterable | str,
         lines = [f"--------{wrong_lvl}--------"]
         lines.extend([f"[{now}|{log_head[1:-1]}]"])
         lines.extend(['\t'+line for line in txt])
-        lines.extend(f"[except:{exception} | msg: {except_msg}]")
+        lines.extend([f"[except:{exception} | msg: {except_msg}]"])
 
         """
             logging format:

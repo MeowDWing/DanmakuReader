@@ -419,8 +419,8 @@ class TempFunc:
         return str(uuid.uuid1()).lower() + 'infoc'
 
 
-def receiver(_g_queue: multiprocessing.Queue, offline=False):
-    x = lg.LiveInfoGet(g_queue=_g_queue, offline=offline)
+def receiver(_g_queue: multiprocessing.Queue):
+    x = lg.LiveInfoGet(g_queue=_g_queue)
     x.living_on()
 
 
