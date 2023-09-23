@@ -1,4 +1,7 @@
 import json
+import time
+from enum import Enum
+from collections.abc import Iterable
 
 _iosetting__tag_dict = {
     'CAPTAIN': '\033[94m',  # Blue bright
@@ -29,11 +32,25 @@ _iosetting__head_set = {
 }
 
 
+class Color(Enum):
+    red = "#FF0000"
+    green = "#00FF00"
+    blue = "#0000FF"
+    black = "#000000"
+    white = "#FFFFFF"
+    snow = "#FFFAFA"
+    azure = "#F0FFFF"
+    aquamarine = "#7FFFD4"
+    yellow = "#FFFF00"
+    orange = "#FFA500"
+    purple = "#A020F0"
+
+
 def print_simple(text: str, base: str = 'NORMAL',
                  special_color='FFFFFF', end='\n'):
 
     begin_str = ''
-    end_str = '\033[0m'
+    end_str = '\033[m'
 
     if base in _iosetting__tag_dict:
         begin_str = _iosetting__tag_dict[base]
@@ -54,7 +71,7 @@ def print_simple(text: str, base: str = 'NORMAL',
 def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
                   head: str = None, prefix: str = None, log=False, special_color='FFFFFF', end='\n'):
     begin_str = ''
-    end_str = '\033[0m'
+    end_str = '\033[m'
 
     if tag in _iosetting__tag_dict:
         begin_str = _iosetting__tag_dict[tag]
@@ -98,6 +115,40 @@ def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
         log_file = open("./logging.txt", mode='a', encoding='utf-8')
         log_file.write(text+end)
         log_file.close()
+
+
+def logging(filename: str, txt: Iterable | str,
+            head: str = None, prefix: str = None, wrong_lvl: str = '',
+            exception: str = 'Unknown', except_msg: str = 'No Describe'):
+
+    if head is None:
+        log_head = f'{set_head(head=head, prefix=prefix)}'
+    else:
+        log_head = '[Default]'
+
+    local = time.localtime(time.time())
+    now = time.strftime("%H:%M:%S", t=local)
+
+    if isinstance(txt, Iterable):
+        lines = [f"--------{wrong_lvl}--------"]
+        lines.extend([f"[{now}|{log_head[1:-1]}]"])
+        lines.extend(['\t'+line for line in txt])
+        lines.extend([f"[except:{exception} | msg: {except_msg}]"])
+
+        """
+            logging format:
+            --------CASE(error|warning|oops)--------
+            [hh:mm:ss|head->prefix]
+                line1
+                line2
+                ...
+            [except: | msg:]              
+        """
+    else:  # not iterable
+        lines = [f">> [{now}|{set_head(head=head, prefix=prefix)[1:-1]}]{txt}[ex:{exception}|msg:{except_msg}]"]
+
+    with open(f'./logging/{filename}', mode='a', encoding='utf-8') as f:
+        f.writelines(lines)
 
 
 def set_head(head, prefix=None):

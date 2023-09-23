@@ -25,6 +25,10 @@ def _initial():
         print('正在创建files文件夹')
         os.mkdir('./files')
 
+    if not os.path.exists('./logging'):
+        print('正在创建logging文件夹')
+        os.mkdir('./logging')
+
     with open('./files/INITIAL', mode='x'):
         pass
 
@@ -48,7 +52,7 @@ def _initial():
         with open('ban_word.txt', mode='w', encoding='utf-8') as f:
             f.write('$ 在该文件下写入的所有词会被屏蔽,每行只写一个词,只屏蔽完全一致的弹幕\n'
                     '$ 本文件中$（美元）符号开头的句子会被视为注释\n'
-                    '$ 更改屏蔽词需要重启应用（如果已经启动的话）'
+                    '$ 更改屏蔽词需要重启应用（如果已经启动的话）\n'
                     '$ 更多操作请参看README.MD文件（可以直接以文本形式打开）\n'
                     '。\n'
                     '赞\n'

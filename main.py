@@ -4,13 +4,13 @@ import os
 import time
 import multiprocessing
 from bilibili_api import settings
+
+import global_setting
 import interface
 import iosetting as ios
 import initial
 
 
-__VERSION__ = 'v2.2-demo-PUSH10'
-__PROJ_NAME__ = 'Danmaku  Reader'
 __PREFIX = 'Mainc'
 
 
@@ -23,6 +23,8 @@ def sys_init():
 
     settings.geetest_auto_open = True
 
+    global_setting.load_setting()
+
 
 def main():
 
@@ -33,7 +35,7 @@ def main():
     while True:
         os.system('cls')
         interface.interface(
-            proj_name=__PROJ_NAME__,
+            proj_name=global_setting.proj_name,
             set_dict={
                 'b': '开始',
                 'c': '查看',
@@ -41,7 +43,7 @@ def main():
                 'r': '重置',
                 'u': '更新内容',
             },
-            version=__VERSION__,
+            version=global_setting.version,
             location='main',
             eflag=True
         )
