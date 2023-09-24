@@ -1,5 +1,5 @@
 # !/
-
+import sys
 import os
 import time
 import multiprocessing
@@ -9,7 +9,8 @@ import global_setting
 import interface
 import iosetting as ios
 import initial
-
+from dr_window import LaunchWindow
+from PyQt5 import QtWidgets
 
 __PREFIX = 'Mainc'
 
@@ -86,4 +87,54 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    app = QtWidgets.QApplication(sys.argv)
+    frame = LaunchWindow()
+    frame.display()
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.ui.readtext.append("<font color=\"#00FF00\"> WOW <\\font>")
+    frame.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+    frame.ui.readtext.append("WOW")
+    frame.test()
+
+
+
+
+    sys.exit(app.exec_())

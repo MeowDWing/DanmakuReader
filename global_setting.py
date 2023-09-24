@@ -3,6 +3,7 @@
     全局变量
 
 """
+from bilibili_api import Credential
 import iosetting as ios
 
 # 版本控制
@@ -13,6 +14,7 @@ proj_name = 'Danmaku  Reader'
 """全局变量"""
 settings = {}
 offline = False
+credential: str | None | Credential = None
 
 
 def load_setting():

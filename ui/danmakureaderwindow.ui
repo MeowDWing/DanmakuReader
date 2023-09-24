@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DanmakuReader</class>
+ <widget class="QMainWindow" name="DanmakuReader">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>260</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>260</width>
+    <height>300</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>260</width>
+    <height>300</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="Launch">
+    <property name="geometry">
+     <rect>
+      <x>55</x>
+      <y>55</y>
+      <width>150</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>150</width>
+      <height>30</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>150</width>
+      <height>30</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>狐神！启动！</string>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>16</width>
+      <height>16</height>
+     </size>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Login">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>210</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>登录</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Settings">
+    <property name="geometry">
+     <rect>
+      <x>145</x>
+      <y>210</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>设置</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>260</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="checklist">
+    <property name="title">
+     <string>查看</string>
+    </property>
+    <addaction name="banword"/>
+    <addaction name="update"/>
+   </widget>
+   <addaction name="checklist"/>
+  </widget>
+  <action name="banword">
+   <property name="text">
+    <string>屏蔽词列表</string>
+   </property>
+  </action>
+  <action name="update">
+   <property name="text">
+    <string>更新内容</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>Launch</sender>
+   <signal>clicked()</signal>
+   <receiver>DanmakuReader</receiver>
+   <slot>launch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>55</x>
+     <y>78</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>156</x>
+     <y>16</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Settings</sender>
+   <signal>clicked()</signal>
+   <receiver>DanmakuReader</receiver>
+   <slot>settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>175</x>
+     <y>247</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>182</x>
+     <y>255</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Login</sender>
+   <signal>clicked()</signal>
+   <receiver>DanmakuReader</receiver>
+   <slot>login()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>88</x>
+     <y>241</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>51</x>
+     <y>258</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>menuBar</sender>
+   <signal>triggered(QAction*)</signal>
+   <receiver>DanmakuReader</receiver>
+   <slot>check()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>129</x>
+     <y>11</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>129</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>launch()</slot>
+  <slot>update_info()</slot>
+  <slot>settings()</slot>
+  <slot>login()</slot>
+  <slot>check()</slot>
+ </slots>
+</ui>

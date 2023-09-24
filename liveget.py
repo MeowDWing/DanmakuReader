@@ -8,6 +8,7 @@ import global_setting
 import interface
 import iosetting as ios
 from bilibili_api import live, sync, credential
+from ui import launchwindow
 
 
 # Exception Zone
@@ -22,7 +23,7 @@ class UserInfoError(Exception):
 
 class LiveInfoGet:
 
-    def __init__(self, g_queue: multiprocessing.Queue,
+    def __init__(self, g_queue: multiprocessing.Queue, ui: launchwindow.Ui_Launch,
                  up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼',
                  ):
         """
@@ -43,6 +44,8 @@ class LiveInfoGet:
         self._queue = g_queue
         self.local_queue = deque()
         self.local_queue_len = len(self.local_queue)
+
+        self.ui = ui
 
         if not os.path.exists('./files'):
             os.mkdir('./files')
@@ -168,5 +171,5 @@ class LiveInfoGet:
 
         # 方案
         # [lvl|nickname]says
-
-        ios.print_simple(f'[{user_fans_lvl}|{nickname}]{danmaku_content}', base=print_flag)
+        display_content = ios.display_details()
+        self.ui.recivetext.append(display_content)

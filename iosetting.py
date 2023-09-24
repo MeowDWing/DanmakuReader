@@ -117,6 +117,14 @@ def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
         log_file.close()
 
 
+def display_details():
+    pass
+
+
+def display_simple():
+    pass
+
+
 def logging(filename: str, txt: Iterable | str,
             head: str = None, prefix: str = None, wrong_lvl: str = '',
             exception: str = 'Unknown', except_msg: str = 'No Describe'):

@@ -4,15 +4,18 @@ import iosetting as ios
 import pyttsx3
 import re
 import multiprocessing
+from ui import launchwindow
 
 
 class Reader:
 
-    def __init__(self, global_queue: multiprocessing.Queue):
+    def __init__(self, global_queue: multiprocessing.Queue,
+                 ui: launchwindow.Ui_Launch):
         self.danmaku_queue = deque()
         self.danmaku_len = 0
         self.tmp = 0
         self._queue = global_queue
+        self.ui = ui
 
         self.__PREFIX = 'Reader'
 
@@ -26,6 +29,8 @@ class Reader:
         self.re_ban_str = ''
         self.ban_word_set_initial()
         self.re_only_some_symbol = re.compile("[^?？.。,，（）()]").search
+        self.ui.readtext.append("<font color>本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在\n"
+                                "\t\t\t------from a certain member of 保狐派")
         ios.print_details('本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在\n'
                           '\t\t\t------from a certain member of 保狐派', tag='CTRL')
         ios.print_details('本界面为debug界面，如果程序出现任何异常，请将本界面的错误信息发与作者', tag='TIPS')
