@@ -5,10 +5,12 @@ block_cipher = None
 
 
 a = Analysis(
-    ['main.py','interface.py','initial.py','iosetting.py','liveget.py','reader.py', 'global_setting.py'],
+    ['DanmakuReader.py','dr_window.py','initial.py','iosetting.py','liveget.py','reader.py', 'global_setting.py',
+    './ui/danmakureaderwindow.py','./ui/launchwindow.py','./ui/login_qrcode.py','./ui/loginwindow.py',
+    './ui/updatecontent.py','./funcs/file_func.py','./funcs/launch_func.py','./funcs/login_func.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('README.md', '.'),('v1.0-alpha.md','.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -31,7 +33,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

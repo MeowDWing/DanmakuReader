@@ -168,5 +168,5 @@ only_test.py
 logging.txt
 files/
 ban_word.txt
-!main.spec
+!DanmakuReader.spec
 *.json

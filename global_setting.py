@@ -8,7 +8,7 @@ import iosetting as ios
 
 # 版本控制
 
-version = 'v2.3-demo-PUSH11'
+version = 'v1.0-alpha'
 proj_name = 'Danmaku  Reader'
 
 """全局变量"""

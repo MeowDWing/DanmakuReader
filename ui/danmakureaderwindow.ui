@@ -83,6 +83,19 @@
      <string>设置</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="Reset">
+    <property name="geometry">
+     <rect>
+      <x>145</x>
+      <y>160</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>重置</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menuBar">
@@ -180,6 +193,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>Reset</sender>
+   <signal>clicked()</signal>
+   <receiver>DanmakuReader</receiver>
+   <slot>reset()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>191</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>187</x>
+     <y>213</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>launch()</slot>
@@ -187,5 +216,6 @@
   <slot>settings()</slot>
   <slot>login()</slot>
   <slot>check()</slot>
+  <slot>reset()</slot>
  </slots>
 </ui>

@@ -1,19 +1,19 @@
 import os
 import time
+from collections import deque
 
-import global_setting
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtWidgets import QMainWindow, QWidget
-from ui import danmakureaderwindow, updatecontent, login_qrcode, loginwindow, launchwindow
+from PyQt5.QtWidgets import QMainWindow, QWidget, QMessageBox
+
 from bilibili_api import login_func, login, settings, exceptions, Credential
 
+import initial
+import global_setting
 import liveget as lg
-from funcs import launch_func
-import multiprocessing
+import iosetting as ios
+from ui import danmakureaderwindow, updatecontent, login_qrcode, loginwindow, launchwindow
+from funcs import launch_func, file_func
 
-
-
-cred : Credential | None = None
 
 class DanmakuReaderMainWindow(QMainWindow):
 
@@ -30,7 +30,8 @@ class DanmakuReaderMainWindow(QMainWindow):
 
     def launch(self):
         self.launch_window = LaunchWindow()
-        self.display()
+        self.launch_window.display()
+        self.close()
 
     def settings(self):
         pass
@@ -43,11 +44,33 @@ class DanmakuReaderMainWindow(QMainWindow):
             self.update_window = UpdateContentWindow()
             self.update_window.show()
 
-
-
     def login(self):
         self.login_window = LoginWindow()
         self.login_window.show()
+
+    def reset(self):
+
+        confirm = QMessageBox()
+        confirm.setIcon(QMessageBox.Question)
+        confirm.setWindowTitle("重置确认")
+        confirm.setText("<b>重置将删除所有已设置数据，你确定吗</b>")
+        confirm.setStandardButtons(QMessageBox.Yes)
+        confirm.setDefaultButton(QMessageBox.No)
+
+        choice = confirm.exec_()
+
+        if choice == QMessageBox.Yes:
+            save_initial_dict = ios.JsonParser.load('./files/INITIAL')
+
+            file_func.file_clearer('./files')
+            if os.path.exists('ban_word.txt'):
+                os.remove('ban_word.txt')
+            initial.initial()
+            ios.JsonParser.dump('./files/INITIAL', save_initial_dict, mode='w')
+
+        else:
+            pass
+
 
 
 class LaunchWindow(QWidget):
@@ -56,25 +79,36 @@ class LaunchWindow(QWidget):
         self.ui = launchwindow.Ui_Launch()
         self.ui.setupUi(self)
         self.__global_queue = None
-        self.process_receiver: multiprocessing.Process | None = None
-        self.process_reader: multiprocessing.Process | None = None
+        self.process_receiver: deque | None = None
+        self.process_reader: deque | None = None
+
+        self.ui.readtext.setStyleSheet('''
+            QTextBrowser 
+            {
+                color: white;
+                background: black;
+                font-family:Times New Roman
+            }
+        ''')
 
     def display(self):
+
         self.show()
+        self.init_reader_and_receiver()
 
     def init_reader_and_receiver(self):
-        self.__global_queue = multiprocessing.Queue(233)
+        self.__global_queue = deque()
         print('正在读取房间号...')
 
         print('正在初始化弹幕获取器...')
-        self.process_receiver = multiprocessing.Process(target=launch_func.receiver, args=(self.__global_queue,self.ui))
+        self.process_receiver = launch_func.RecThread(_g_queue=self.__global_queue, _ui=self.ui)
 
         print("正在初始化阅读器...")
-        self.process_reader = multiprocessing.Process(target=launch_func.reader, args=(self.__global_queue,self.ui))
+        self.process_reader = launch_func.RdThread(_g_queue=self.__global_queue, _ui=self.ui)
+        print(1)
 
-    def start_process(self):
-        self.process_receiver.start()
         self.process_reader.start()
+        self.process_receiver.start()
 
     def join2txt_browser(self, which, txt):
         pass
@@ -133,19 +167,17 @@ class LoginWindow(QWidget):
             self.newui = QRCodeWindow()
             self.newui.display()
 
-
     @staticmethod
     def login_by_pw(account, password):
-        global cred
         settings.geetest_auto_open = True
         try:
-            cred = login.login_with_password(account, password)
+            global_setting.credential = login.login_with_password(account, password)
         except exceptions.LoginError as el:
-            cred = None
+            global_setting.credential = None
             # ios.print_details(el.msg, tag='WRONG', head='WRONG', prefix='LOGIN')
             # time.sleep(1)
             return 'False', 'False'
-        if isinstance(cred, login.Check):
+        if isinstance(global_setting.credential, login.Check):
             # 还需验证
             pass
             return account, password

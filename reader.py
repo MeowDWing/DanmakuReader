@@ -3,13 +3,12 @@ from collections import deque
 import iosetting as ios
 import pyttsx3
 import re
-import multiprocessing
 from ui import launchwindow
 
 
 class Reader:
 
-    def __init__(self, global_queue: multiprocessing.Queue,
+    def __init__(self, global_queue: deque,
                  ui: launchwindow.Ui_Launch):
         self.danmaku_queue = deque()
         self.danmaku_len = 0
@@ -29,11 +28,11 @@ class Reader:
         self.re_ban_str = ''
         self.ban_word_set_initial()
         self.re_only_some_symbol = re.compile("[^?？.。,，（）()]").search
-        self.ui.readtext.append("<font color>本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在\n"
-                                "\t\t\t------from a certain member of 保狐派")
-        ios.print_details('本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在\n'
-                          '\t\t\t------from a certain member of 保狐派', tag='CTRL')
-        ios.print_details('本界面为debug界面，如果程序出现任何异常，请将本界面的错误信息发与作者', tag='TIPS')
+        self.ui.readtext.append(f"<font color=cyan>本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在</font>"
+                                "<p style=\"text-align:right;color:cyan\">------保狐派</p>")
+        # ios.print_details('本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在\n'
+        #                   '\t\t\t------from a certain member of 保狐派', tag='CTRL')
+        # ios.print_details('本界面为debug界面，如果程序出现任何异常，请将本界面的错误信息发与作者', tag='TIPS')
 
         self.player = TxtProcess()
 
@@ -70,8 +69,8 @@ class Reader:
 
             # 队列加入与预处理机制
             if self.danmaku_len < 50:
-                while not self._queue.empty():
-                    c: str = self._queue.get()
+                while len(self._queue) > 0:
+                    c: str = self._queue.popleft()
                     c = c.strip()
                     re_flag = re.search(self.re_ban_str, c)
 
@@ -140,6 +139,7 @@ class Reader:
                     self.danmaku_len -= 1
                 else:
                     ios.print_details(now + ' 准备读取', tag='SYSTEM')
+                    self.ui.readtext.append(f"{now}准备读取")
                     self.player.txt2audio(now)
                     self.danmaku_len -= 1
                     former = now
@@ -150,6 +150,7 @@ class Reader:
             if int(time.time()) % 100 == 0:
                 self.danmaku_len = len(self.danmaku_queue)
                 ios.print_details('当前队列数量已同步', tag='SYSTEM')
+                self.ui.readtext.append("当前队列数量已同步")
 
     def popleft_n(self, n):
         for _ in range(n):

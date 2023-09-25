@@ -32,18 +32,35 @@ _iosetting__head_set = {
 }
 
 
-class Color(Enum):
-    red = "#FF0000"
-    green = "#00FF00"
-    blue = "#0000FF"
-    black = "#000000"
-    white = "#FFFFFF"
-    snow = "#FFFAFA"
-    azure = "#F0FFFF"
-    aquamarine = "#7FFFD4"
-    yellow = "#FFFF00"
-    orange = "#FFA500"
-    purple = "#A020F0"
+class HeadSet(Enum):
+    captain_buy_3 = "DeepSkyBlue"
+    captain_buy_2 = "DodgerBlue"
+    captain_buy_1 = "RoyalBlue"
+    tips = "DarkCyan"
+    error = "Red"
+    warning = "Yellow"
+    success = "Lime"
+    system = "OrangeRed"
+    up = "Chartreuse"
+    fans = "Azure"
+    ctrl = "Aqua"
+    captain = "Blue"
+
+
+_iosetting__head = {
+    'CAPTAIN': HeadSet.captain,
+    'CAPTAIN_BUY_3': HeadSet.captain_buy_3,  # Deep Sky Blue
+    'CAPTAIN_BUY_2': HeadSet.captain_buy_2,  # Doder Blue
+    'CAPTAIN_BUY_1': HeadSet.captain_buy_1,  # Royal Blue
+    'CTRL': HeadSet.ctrl,
+    'ERROR': HeadSet.error,
+    'FANS': HeadSet.fans,
+    'SYSTEM': HeadSet.system,  # Red bright
+    'SUCCESS': HeadSet.success,  # Green bottom
+    'UP': HeadSet.up,  # Green bright
+    'WARNING': HeadSet.warning,  # Yellow bottom
+    'TIPS': HeadSet.tips
+}
 
 
 def print_simple(text: str, base: str = 'NORMAL',
@@ -117,12 +134,55 @@ def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
         log_file.close()
 
 
-def display_details():
-    pass
+def display_details(text: str, tag: str = 'NORMAL',
+                    head: str = None, prefix: str = None, special_color: str | None = None, newline: bool = True):
+    bracket = "<span style\"{}\">{}{}</span>"
+    if newline:
+        bracket.join("<br>")
+
+    if tag in _iosetting__head_set:
+        if head is None:
+            head = tag
+
+    if tag not in _iosetting__head.keys():
+        tag = None
+
+    fro = ""
+    if head is not None:
+        if prefix is not None:
+            fro = set_head(head, prefix)
+        else:
+            fro = set_head(head)
+
+    if special_color is None:
+        if tag is None:
+            display_content = text
+        else:
+            display_content = bracket.format(_iosetting__head[tag], fro, text)
+    else:
+        display_content = bracket.format(special_color, fro, text)
+
+    return display_content
 
 
-def display_simple():
-    pass
+def display_simple(text: str, base: str = 'NORMAL',
+                   special_color="White", newline=True):
+    bracket = "<span style\"{}\">{}</span>"
+    if newline:
+        bracket.join("<br>")
+
+    if base not in _iosetting__head:
+        base = None
+
+    if special_color is None:
+        if base is None:
+            display_content = text
+        else:
+            display_content = bracket.format(_iosetting__head[base], text)
+    else:
+        display_content = bracket.format(special_color, text)
+
+    return display_content
 
 
 def logging(filename: str, txt: Iterable | str,

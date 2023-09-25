@@ -1,14 +1,14 @@
-import multiprocessing
+
 import os
 import time
 from collections import deque
 import random
 
 import global_setting
-import interface
 import iosetting as ios
 from bilibili_api import live, sync, credential
 from ui import launchwindow
+from funcs import login_func
 
 
 # Exception Zone
@@ -23,7 +23,7 @@ class UserInfoError(Exception):
 
 class LiveInfoGet:
 
-    def __init__(self, g_queue: multiprocessing.Queue, ui: launchwindow.Ui_Launch,
+    def __init__(self, g_queue: deque, ui: launchwindow.Ui_Launch,
                  up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼',
                  ):
         """
@@ -42,8 +42,6 @@ class LiveInfoGet:
         self.__PREFIX = 'Rec'
 
         self._queue = g_queue
-        self.local_queue = deque()
-        self.local_queue_len = len(self.local_queue)
 
         self.ui = ui
 
@@ -55,6 +53,7 @@ class LiveInfoGet:
         self.min_lvl = global_setting.settings['basic_setting']['min_level']
         self.login_flag = global_setting.settings['sys_setting']['login']
         self.debug_flag = global_setting.settings['sys_setting']['debug']
+
         if self.min_lvl == 0:
             self.read_any_lvl = True
         else:
@@ -72,7 +71,7 @@ class LiveInfoGet:
                 ios.print_details('关键信息配置有误，请检查sessdate和buvid3信息是否已配置', tag='WARNING')
                 time.sleep(3)
             elif buvid3 is None:
-                buvid3 = interface.TempFunc.get_buvid3()
+                buvid3 = login_func.get_buvid3()
 
             self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
                                                      ac_time_value=ac_time_value)
@@ -81,8 +80,8 @@ class LiveInfoGet:
             need_login = not sync(self.credentials.check_valid())
 
             if self.login_flag and need_login:
-                self.credentials = interface.LoginFunc.semi_autologin()
-                interface.LoginFunc.save_credentials(self.credentials)
+                self.credentials = login_func.LoginFunc.semi_autologin()
+                login_func.LoginFunc.save_credentials(self.credentials)
             elif need_login:
                 ios.print_simple('登录cookie需要更新，如需登录请重启程序并登录', base='WARNING')
 
@@ -149,19 +148,7 @@ class LiveInfoGet:
                     if_read = True
 
         if len(danmaku_content) > 0 and (self.read_any_lvl or if_read):
-            if not self._queue.full():
-                if self.local_queue_len != 0:
-                    while True:
-                        if not self._queue.full() and self.local_queue_len != 0:
-                            c = self.local_queue.popleft()
-                            self.local_queue_len -= 1
-                            self._queue.put(c)
-                        else:
-                            break
-                else:
-                    self._queue.put(danmaku_content)
-            else:
-                self.local_queue.append(danmaku_content)
+            self._queue.append(danmaku_content)
 
         match nickname:
             case self.ctrl_name:
@@ -171,5 +158,5 @@ class LiveInfoGet:
 
         # 方案
         # [lvl|nickname]says
-        display_content = ios.display_details()
-        self.ui.recivetext.append(display_content)
+        # display_content = ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}")
+        self.ui.recivetext.append(f"[{user_fans_lvl}|{nickname}]{danmaku_content}")
