@@ -1,15 +1,13 @@
 import os
-import time
 from collections import deque
 
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QMainWindow, QWidget, QMessageBox
 
-from bilibili_api import login_func, login, settings, exceptions, Credential
+from bilibili_api import login, settings, exceptions
 
 import initial
 import global_setting
-import liveget as lg
 import iosetting as ios
 from ui import danmakureaderwindow, updatecontent, login_qrcode, loginwindow, launchwindow
 from funcs import launch_func, file_func
@@ -54,7 +52,7 @@ class DanmakuReaderMainWindow(QMainWindow):
         confirm.setIcon(QMessageBox.Question)
         confirm.setWindowTitle("重置确认")
         confirm.setText("<b>重置将删除所有已设置数据，你确定吗</b>")
-        confirm.setStandardButtons(QMessageBox.Yes)
+        confirm.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         confirm.setDefaultButton(QMessageBox.No)
 
         choice = confirm.exec_()
@@ -72,17 +70,24 @@ class DanmakuReaderMainWindow(QMainWindow):
             pass
 
 
-
 class LaunchWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.ui = launchwindow.Ui_Launch()
         self.ui.setupUi(self)
         self.__global_queue = None
-        self.process_receiver: deque | None = None
-        self.process_reader: deque | None = None
+        self.process_receiver: QtCore.QThread | None = None
+        self.process_reader: QtCore.QThread | None = None
 
         self.ui.readtext.setStyleSheet('''
+            QTextBrowser 
+            {
+                color: white;
+                background: black;
+                font-family:Times New Roman
+            }
+        ''')
+        self.ui.recivetext.setStyleSheet('''
             QTextBrowser 
             {
                 color: white;
@@ -119,11 +124,12 @@ class LaunchWindow(QWidget):
     def timerEvent(self, a0) -> None:
         self.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
 
+
 class LoginWindow(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.save_password_flag : bool = False
+        self.save_password_flag: bool = False
         self.loginwindow_ui = loginwindow.Ui_LoginWindow()
         self.loginwindow_ui.setupUi(self)
         self.login_func_index = self.loginwindow_ui.comboBox.currentIndex()
@@ -164,15 +170,15 @@ class LoginWindow(QWidget):
         elif idx == 2:
             self.loginwindow_ui.checkBox.hide()
             self.loginwindow_ui.pushButton.hide()
-            self.newui = QRCodeWindow()
-            self.newui.display()
+            self.qrcode_window = QRCodeWindow()
+            self.qrcode_window.display()
 
     @staticmethod
     def login_by_pw(account, password):
         settings.geetest_auto_open = True
         try:
             global_setting.credential = login.login_with_password(account, password)
-        except exceptions.LoginError as el:
+        except exceptions.LoginError:
             global_setting.credential = None
             # ios.print_details(el.msg, tag='WRONG', head='WRONG', prefix='LOGIN')
             # time.sleep(1)
@@ -208,4 +214,3 @@ class UpdateContentWindow(QWidget):
         content = "".join(lines)
         print(content)
         self.ui.textBrowser.setMarkdown(content)
-

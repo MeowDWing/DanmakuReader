@@ -43,7 +43,7 @@ class LiveInfoGet:
 
         self._queue = g_queue
 
-        self.ui = ui
+        self.ui = ui.recivetext
 
         if not os.path.exists('./files'):
             os.mkdir('./files')
@@ -65,10 +65,10 @@ class LiveInfoGet:
 
             if sessdate is None and bili_jct is None and buvid3 is None and ac_time_value is None:
                 self.credentials = None
-                ios.print_details('请检查INITIAL文件确保登录信息正确', tag='WARNING')
+                ios.display_details('请检查INITIAL文件确保登录信息正确', tag='WARNING', ui=self.ui)
                 time.sleep(3)
             elif sessdate is None and buvid3 is None:
-                ios.print_details('关键信息配置有误，请检查sessdate和buvid3信息是否已配置', tag='WARNING')
+                ios.display_details('关键信息配置有误，请检查sessdate和buvid3信息是否已配置', tag='WARNING', ui=self.ui)
                 time.sleep(3)
             elif buvid3 is None:
                 buvid3 = login_func.get_buvid3()
@@ -83,7 +83,7 @@ class LiveInfoGet:
                 self.credentials = login_func.LoginFunc.semi_autologin()
                 login_func.LoginFunc.save_credentials(self.credentials)
             elif need_login:
-                ios.print_simple('登录cookie需要更新，如需登录请重启程序并登录', base='WARNING')
+                ios.display_simple('登录cookie需要更新，如需登录请重启程序并登录', base='WARNING', ui=self.ui)
 
         else:  # if offline
             self.credentials = None
@@ -119,9 +119,9 @@ class LiveInfoGet:
         @self.room_event_stream.on('DANMU_MSG')
         async def on_danmaku(event):  # event -> dictionary
             if self.debug_flag:
-                ios.print_details('danmaku'+str(random.randint(0, 50000))+'='+str(event), debug_flag=True)
+                ios.logging_simple(filename='./logging.txt', txt='danmaku'+str(random.randint(0, 50000))+'='+str(event))
             self.danmaku_processing(event)
-        ios.print_details('弹幕开启', tag='SYSTEM')
+        ios.display_details('弹幕开启', tag='SYSTEM', ui=self.ui)
 
         sync(self.room_event_stream.connect())
 
@@ -159,4 +159,4 @@ class LiveInfoGet:
         # 方案
         # [lvl|nickname]says
         # display_content = ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}")
-        self.ui.recivetext.append(f"[{user_fans_lvl}|{nickname}]{danmaku_content}")
+        ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}", tag=print_flag, ui=self.ui)

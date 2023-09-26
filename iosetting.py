@@ -2,6 +2,7 @@ import json
 import time
 from enum import Enum
 from collections.abc import Iterable
+from PyQt5.QtWidgets import QWidget, QTextBrowser
 
 _iosetting__tag_dict = {
     'CAPTAIN': '\033[94m',  # Blue bright
@@ -48,18 +49,19 @@ class HeadSet(Enum):
 
 
 _iosetting__head = {
-    'CAPTAIN': HeadSet.captain,
-    'CAPTAIN_BUY_3': HeadSet.captain_buy_3,  # Deep Sky Blue
-    'CAPTAIN_BUY_2': HeadSet.captain_buy_2,  # Doder Blue
-    'CAPTAIN_BUY_1': HeadSet.captain_buy_1,  # Royal Blue
-    'CTRL': HeadSet.ctrl,
-    'ERROR': HeadSet.error,
-    'FANS': HeadSet.fans,
-    'SYSTEM': HeadSet.system,  # Red bright
-    'SUCCESS': HeadSet.success,  # Green bottom
-    'UP': HeadSet.up,  # Green bright
-    'WARNING': HeadSet.warning,  # Yellow bottom
-    'TIPS': HeadSet.tips
+    'CAPTAIN': HeadSet.captain.value,
+    'CAPTAIN_BUY_3': HeadSet.captain_buy_3.value,  # Deep Sky Blue
+    'CAPTAIN_BUY_2': HeadSet.captain_buy_2.value,  # Doder Blue
+    'CAPTAIN_BUY_1': HeadSet.captain_buy_1.value,  # Royal Blue
+    'CTRL': HeadSet.ctrl.value,
+    'ERROR': HeadSet.error.value,
+    'FANS': HeadSet.fans.value,
+    'SYSTEM': HeadSet.system.value,  # Red bright
+    'SUCCESS': HeadSet.success.value,  # Green bottom
+    'UP': HeadSet.up.value,  # Green bright
+    'WARNING': HeadSet.warning.value,  # Yellow bottom
+    'TIPS': HeadSet.tips.value,
+    "SPECIAL": None
 }
 
 
@@ -134,9 +136,9 @@ def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
         log_file.close()
 
 
-def display_details(text: str, tag: str = 'NORMAL',
+def display_details(text: str, tag: str = 'NORMAL', ui: QTextBrowser | None = None,
                     head: str = None, prefix: str = None, special_color: str | None = None, newline: bool = True):
-    bracket = "<span style\"{}\">{}{}</span>"
+    bracket = "<span style=\"color:{}\">{}{}</span>"
     if newline:
         bracket.join("<br>")
 
@@ -162,12 +164,15 @@ def display_details(text: str, tag: str = 'NORMAL',
     else:
         display_content = bracket.format(special_color, fro, text)
 
+    if ui is not None:
+        ui.append(display_content)
+
     return display_content
 
 
 def display_simple(text: str, base: str = 'NORMAL',
-                   special_color="White", newline=True):
-    bracket = "<span style\"{}\">{}</span>"
+                   special_color="White", newline=True, ui: QTextBrowser | None = None):
+    bracket = "<span style=\"color:{}\">{}</span>"
     if newline:
         bracket.join("<br>")
 
@@ -182,6 +187,8 @@ def display_simple(text: str, base: str = 'NORMAL',
     else:
         display_content = bracket.format(special_color, text)
 
+    if ui is not None:
+        ui.append(display_content)
     return display_content
 
 
@@ -217,6 +224,11 @@ def logging(filename: str, txt: Iterable | str,
 
     with open(f'./logging/{filename}', mode='a', encoding='utf-8') as f:
         f.writelines(lines)
+
+
+def logging_simple(filename: str, txt: str):
+    with open(f'./logging/{filename}', mode='a', encoding='utf-8') as f:
+        f.write(txt)
 
 
 def set_head(head, prefix=None):
