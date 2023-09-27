@@ -10,7 +10,7 @@ import initial
 import global_setting
 import iosetting as ios
 from ui import danmakureaderwindow, updatecontent, login_qrcode, loginwindow, launchwindow
-from funcs import launch_func, file_func
+from funcs import launch_func, file_func, login_func
 
 
 class DanmakuReaderMainWindow(QMainWindow):
@@ -146,7 +146,8 @@ class LoginWindow(QWidget):
         if idx == 0:
             account = self.loginwindow_ui.nnl.text()
             pw = self.loginwindow_ui.pwl.text()
-            self.login_by_pw(account, pw)
+            if self.save_password_flag:
+                login_func.login_by_pw(account, pw, save=True)
             if self.loginwindow_ui.checkBox.isChecked():
                 pass
 
@@ -172,23 +173,6 @@ class LoginWindow(QWidget):
             self.loginwindow_ui.pushButton.hide()
             self.qrcode_window = QRCodeWindow()
             self.qrcode_window.display()
-
-    @staticmethod
-    def login_by_pw(account, password):
-        settings.geetest_auto_open = True
-        try:
-            global_setting.credential = login.login_with_password(account, password)
-        except exceptions.LoginError:
-            global_setting.credential = None
-            # ios.print_details(el.msg, tag='WRONG', head='WRONG', prefix='LOGIN')
-            # time.sleep(1)
-            return 'False', 'False'
-        if isinstance(global_setting.credential, login.Check):
-            # 还需验证
-            pass
-            return account, password
-        else:
-            return account, password
 
 
 class QRCodeWindow(QWidget):

@@ -80,8 +80,8 @@ class LiveInfoGet:
             need_login = not sync(self.credentials.check_valid())
 
             if self.login_flag and need_login:
-                self.credentials = login_func.LoginFunc.semi_autologin()
-                login_func.LoginFunc.save_credentials(self.credentials)
+                self.credentials = login_func.semi_autologin()
+                login_func.login_info_save(self.credentials)
             elif need_login:
                 ios.display_simple('登录cookie需要更新，如需登录请重启程序并登录', base='WARNING', ui=self.ui)
 

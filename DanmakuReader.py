@@ -1,9 +1,10 @@
 import sys
 import initial
 from PyQt5 import QtWidgets
-from bilibili_api import settings
+from bilibili_api import settings, Credential
 import global_setting
 from dr_window import DanmakuReaderMainWindow
+from funcs import login_func
 
 
 def sys_init():

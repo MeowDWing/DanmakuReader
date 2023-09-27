@@ -36,7 +36,7 @@ def _initial():
         'what': '登录信息',
         'id': None,
         'pw': None,
-        'sessdate': None,
+        'sessdata': None,
         'bili_jct': None,
         'buvid3': None,
         'ac_time_value': None,

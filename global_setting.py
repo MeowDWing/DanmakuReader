@@ -5,6 +5,7 @@
 """
 from bilibili_api import Credential
 import iosetting as ios
+from funcs import file_func, login_func
 
 # 版本控制
 
@@ -13,14 +14,22 @@ proj_name = 'Danmaku  Reader'
 
 """全局变量"""
 settings = {}
+INITIAL = None
+user_info = None
 offline = False
 credential: str | None | Credential = None
 
 
 def load_setting():
 
-    global settings
+    global settings, INITIAL, user_info, credential
+
     settings = ios.JsonParser.load('./files/settings.txt')
+    INITIAL = file_func.InitialParser()
+
+    credential = INITIAL.get_credential()
+
+    user_info = login_func.UserInfoParser(credential)
 
 
 def update_setting():
