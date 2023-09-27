@@ -39,14 +39,9 @@ class LiveInfoGet:
         self.up_name = up_name
         self.ctrl_name = ctrl_name
 
-        self.__PREFIX = 'Rec'
-
         self._queue = g_queue
 
         self.ui = ui.recivetext
-
-        if not os.path.exists('./files'):
-            os.mkdir('./files')
 
         # 设置信息获取区 settings initial zone
         self.room_id = global_setting.settings['basic_setting']['rid']
@@ -61,28 +56,23 @@ class LiveInfoGet:
 
         if not global_setting.offline:
             # 登录信息设置区 login info initial zone
-            sessdate, bili_jct, buvid3, ac_time_value = self.get_credentials()
+            self.credentials = global_setting.credential
 
-            if sessdate is None and bili_jct is None and buvid3 is None and ac_time_value is None:
-                self.credentials = None
+            sessdata = self.credentials.sessdata
+            bili_jct = self.credentials.bili_jct
+            buvid3 = self.credentials.buvid3
+            ac_time_value = self.credentials.ac_time_value
+
+            if sessdata is None and bili_jct is None and buvid3 is None and ac_time_value is None:
+                self.credentials = credential.Credential()
                 ios.display_details('请检查INITIAL文件确保登录信息正确', tag='WARNING', ui=self.ui)
-                time.sleep(3)
-            elif sessdate is None and buvid3 is None:
-                ios.display_details('关键信息配置有误，请检查sessdate和buvid3信息是否已配置', tag='WARNING', ui=self.ui)
-                time.sleep(3)
-            elif buvid3 is None:
-                buvid3 = login_func.get_buvid3()
-
-            self.credentials = credential.Credential(sessdata=sessdate, bili_jct=bili_jct, buvid3=buvid3,
-                                                     ac_time_value=ac_time_value)
+            elif sessdata is None and buvid3 is None:
+                self.credentials = credential.Credential()
+                ios.display_details('关键信息配置有误，请检查sessdata和buvid3信息是否已配置', tag='WARNING', ui=self.ui)
 
             # cookie 刷新与自动登录区 cookie refresh and login Zone
             need_login = not sync(self.credentials.check_valid())
-
-            if self.login_flag and need_login:
-                self.credentials = login_func.semi_autologin()
-                login_func.login_info_save(self.credentials)
-            elif need_login:
+            if need_login:
                 ios.display_simple('登录cookie需要更新，如需登录请重启程序并登录', base='WARNING', ui=self.ui)
 
         else:  # if offline
@@ -102,17 +92,6 @@ class LiveInfoGet:
             raise UserInfoError("User_id maybe wrong, please check again")
 
         self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
-
-    @staticmethod
-    def get_credentials():
-        c_dict = ios.JsonParser.load('./files/INITIAL')
-
-        s = c_dict['sessdate']
-        b = c_dict['bili_jct']
-        b3 = c_dict['buvid3']
-        a = c_dict['ac_time_value']
-
-        return s, b, b3, a
 
     def living_on(self):
 

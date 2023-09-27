@@ -14,8 +14,8 @@ proj_name = 'Danmaku  Reader'
 
 """全局变量"""
 settings = {}
-INITIAL = None
-user_info = None
+INITIAL: file_func.InitialParser | None = None
+user_info: login_func.UserInfoParser | None = None
 offline = False
 credential: str | None | Credential = None
 
@@ -28,8 +28,8 @@ def load_setting():
     INITIAL = file_func.InitialParser()
 
     credential = INITIAL.get_credential()
-
-    user_info = login_func.UserInfoParser(credential)
+    if credential is not None:
+        user_info = login_func.UserInfoParser(credential)
 
 
 def update_setting():

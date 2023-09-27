@@ -4,7 +4,7 @@ from collections import deque
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QMainWindow, QWidget, QMessageBox
 
-from bilibili_api import login, settings, exceptions
+from bilibili_api import login, settings, exceptions, credential, sync
 
 import initial
 import global_setting
@@ -19,12 +19,32 @@ class DanmakuReaderMainWindow(QMainWindow):
         super().__init__()
         self.ui = danmakureaderwindow.Ui_DanmakuReader()
         self.ui.setupUi(self)
+        if sync(global_setting.credential.check_valid()):
+            n = global_setting.user_info.nickname()
+            self.ui.welcome.setText(
+                f"<p style=\" font-weight:600; color:#0000ff; text-align:center\">欢迎回来：{n}</p>"
+            )
+        else:
+            self.ui.welcome.setText(
+                "<p style=\" font-weight:600; color:#0000ff; text-align:center\">未登录</p>"
+            )
         self.update_window = None
         self.login_window = None
         self.launch_window = None
 
     def display(self):
         self.show()
+
+    def login_update(self):
+        if credential.check_cookies(global_setting.credential):
+            n = global_setting.user_info.nickname()
+            self.ui.welcome.setText(
+                f"<p style=\" font-weight:600; color:#0000ff; text-align:center\">欢迎回来：{n}</p>"
+            )
+        else:
+            self.ui.welcome.setText(
+                "<p style=\" font-weight:600; color:#0000ff; text-align:center\">未登录</p>"
+            )
 
     def launch(self):
         self.launch_window = LaunchWindow()
@@ -43,7 +63,7 @@ class DanmakuReaderMainWindow(QMainWindow):
             self.update_window.show()
 
     def login(self):
-        self.login_window = LoginWindow()
+        self.login_window = LoginWindow(self)
         self.login_window.show()
 
     def reset(self):
@@ -127,32 +147,54 @@ class LaunchWindow(QWidget):
 
 class LoginWindow(QWidget):
 
-    def __init__(self):
+    def __init__(self, main_window: DanmakuReaderMainWindow):
         super().__init__()
         self.save_password_flag: bool = False
-        self.loginwindow_ui = loginwindow.Ui_LoginWindow()
-        self.loginwindow_ui.setupUi(self)
-        self.login_func_index = self.loginwindow_ui.comboBox.currentIndex()
-
+        self.ui = loginwindow.Ui_LoginWindow()
+        self.ui.setupUi(self)
+        self.save_password_flag = global_setting.settings['sys_setting']['save_account']
+        if self.save_password_flag:
+            self.ui.checkBox.setChecked(True)
+        self.login_func_index = self.ui.comboBox.currentIndex()
+        self.main_window = main_window
         self.__self_login_func_choice(self.login_func_index)
 
-        self.button_click_behavior = 0
 
     def display(self):
         self.show()
 
     def loginwindow_login(self):
+        sign: login_func.LoginState | None = None
         idx = self.login_func_index
         if idx == 0:
-            account = self.loginwindow_ui.nnl.text()
-            pw = self.loginwindow_ui.pwl.text()
-            if self.save_password_flag:
-                login_func.login_by_pw(account, pw, save=True)
-            if self.loginwindow_ui.checkBox.isChecked():
-                pass
+            account = self.ui.nnl.text()
+            pw = self.ui.pwl.text()
+            save = False
+            if self.ui.checkBox.isChecked():
+                save = True
+            sign = login_func.login_by_pw(account, pw, save=save)
+
+        elif idx == 1:
+            phone = self.ui.nnl.text()
+            code = self.ui.pwl.text()
+            sign = login_func.login_by_sms(phone, code)
+
+        if sign == login_func.LoginState.success:
+            self.main_window.update_window()
+            self.close()
+        elif sign is None:
+            pass  # raise 登录状态错误
+        else:
+            pass  # 显示错误数据
+
+    def get_sms(self):
+        phone = self.ui.nnl.text()
+        login_func.get_sms_code(phone)
 
     def loginwindow_save_password(self, save):
         self.save_password_flag = save
+        global_setting.settings['sys_setting']['save_account'] = save
+        global_setting.update_setting()
 
     def loginwindow_loginfunc_combox(self, idx):
         self.__self_login_func_choice(idx)
@@ -162,22 +204,26 @@ class LoginWindow(QWidget):
         self.login_func_index = idx
 
         if idx == 0:
-            self.loginwindow_ui.pw.setText("密码")
-            self.loginwindow_ui.pushButton.setText("登录")
+            self.ui.checkBox.show()
+            self.ui.pushButton_2.hide()
+            self.ui.pw.setText("密码")
+            self.ui.pwl.setEchoMode(2)
         elif idx == 1:
-            self.loginwindow_ui.pw.setText("验证码")
-            self.loginwindow_ui.pushButton.setText("获取验证码")
-            self.button_click_behavior = 1
+            self.ui.pushButton_2.show()
+            self.ui.checkBox.hide()
+            self.ui.pw.setText("验证码")
+            self.ui.pwl.setEchoMode(0)
         elif idx == 2:
-            self.loginwindow_ui.checkBox.hide()
-            self.loginwindow_ui.pushButton.hide()
-            self.qrcode_window = QRCodeWindow()
+            self.ui.checkBox.hide()
+            self.ui.pushButton.hide()
+            self.qrcode_window = QRCodeWindow(self.main_window)
             self.qrcode_window.display()
 
 
 class QRCodeWindow(QWidget):
-    def __init__(self):
+    def __init__(self, main_window):
         super().__init__()
+        self.main_window = main_window
         self.ui = login_qrcode.Ui_Login()
         self.ui.setupUi(self)
 

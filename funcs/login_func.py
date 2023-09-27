@@ -1,8 +1,10 @@
+import urllib.parse
 import uuid
 import os
 import time
 from enum import Enum
 
+import bilibili_api
 from bilibili_api import login, login_func, exceptions, sync, user
 from bilibili_api.credential import Credential
 from bilibili_api.login import login_with_password, login_with_sms, send_sms, PhoneNumber
@@ -18,6 +20,13 @@ class LoginState(Enum):
     need_qrcode = "请使用二维码登录"
     need_sms = "请使用验证码登录"
     fail = "登陆错误"
+
+
+def login_check(c: Credential) -> bool:
+
+    ret = sync(c.check_valid())
+
+    return ret
 
 
 def get_buvid3() -> str:
@@ -40,20 +49,16 @@ def login_info_save(c: Credential) -> bool:
         return True
 
 
-def login_info_get() -> (str, Credential):
-    cdict = ios.JsonParser.load('./files/INITIAL')
-    c = Credential(sessdata=cdict["sessdata"], bili_jct=cdict["bili_jct"],
-                   buvid3=cdict["buvid3"], ac_time_value=cdict["ac_time_value"])
-
-    self_info = sync(user.get_self_info(c))
-
-    ios.JsonParser.dump('./files/INITIAL', cdict, mode='w')
-
-
 class UserInfoParser:
 
     def __init__(self, c: Credential | None = None):
-        self.info = sync(user.get_self_info(c))
+        if c.sessdata is not None:
+            self.info = sync(user.get_self_info(c))
+        else:
+            self.info = {
+                'name': None,
+                'mid': None
+            }
 
     def nickname(self):
         return self.info['name']
@@ -79,7 +84,6 @@ def login_by_pw(username: str | None = None, password: str | None = None, save=F
         # 还需验证
         c = None
         check = True
-        print("需要进行验证。请考虑使用验证码登录")
     else:
         global_setting.settings['sys_setting']['login'] = True
         global_setting.update_setting()
@@ -88,11 +92,17 @@ def login_by_pw(username: str | None = None, password: str | None = None, save=F
         if save:
             global_setting.INITIAL.id = username
             global_setting.INITIAL.pw = password
-
+        if c.buvid3 is None:
+            c.buvid3 = get_buvid3()
+        c.sessdata = urllib.parse.quote(c.sessdata)
         global_setting.INITIAL.credential_consist(c)
         global_setting.INITIAL.update_and_dump()
 
-        return LoginState.success
+        if login_check(c):
+            global_setting.user_info = UserInfoParser(c)
+            return LoginState.success
+        else:
+            return LoginState.fail
 
     else:
         if check:
@@ -117,22 +127,19 @@ def login_by_sms(phone, code) -> LoginState:
     if c is None:
         return LoginState.need_qrcode
     else:
+        if c.buvid3 is None:
+            c.buvid3 = get_buvid3()
+        c.sessdata = urllib.parse.quote(c.sessdata)
+        print(c.sessdata)
         global_setting.INITIAL.credential_consist(c)
-        return LoginState.success
+        global_setting.INITIAL.dump()
 
+        if login_check(c):
+            global_setting.user_info = UserInfoParser(c)
 
-def qrcode():
-    print("请登录：")
-    credential = login.login_with_qrcode_term()  # 在终端扫描二维码登录
-    # credential = login.login_with_qrcode() # 使用窗口显示二维码登录
-    try:
-        credential.raise_for_no_bili_jct()  # 判断是否成功
-        credential.raise_for_no_sessdata()  # 判断是否成功
-        return credential
-    except:
-        print("登陆失败。。。")
-        time.sleep(3)
-        return None
+            return LoginState.success
+        else:
+            return LoginState.fail
 
 
 def semi_autologin(in_run: bool = False):

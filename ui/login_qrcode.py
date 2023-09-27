@@ -2,6 +2,9 @@ import json
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from bilibili_api import login_func, user, sync
+from funcs import login_func
+
+import global_setting
 
 
 # 二维码登录窗口类
@@ -39,6 +42,7 @@ class Ui_Login(object):
             self.label_5.setScaledContents(True)
             self.label_5.update()
             self.qrcode_sec = qrcode_data[1]
+
         self.pushButton_2.clicked.connect(update_qrcode)
 
         Login.startTimer(1000)
@@ -58,13 +62,16 @@ class Ui_Login(object):
                 elif events[0] == login_func.QrCodeLoginEvents.DONE:
                     self.label_2.setText(_translate("Login", "🟢二维码登录"))
                     credential = events[1]
-                    self_info = sync(user.get_self_info(credential)) # type: ignore
+                    global_setting.credential = credential
+                    global_setting.INITIAL.credential_consist(credential)
+                    global_setting.user_info = login_func.UserInfoParser(credential)
                     reply = QtWidgets.QMessageBox.information(
                         Login,
                         "已成功登录到你的帐号",
-                        "欢迎：" + self_info['name'],
+                        "欢迎：" + global_setting.user_info.nickname(),
                         QtWidgets.QMessageBox.Ok
                     )
+                    Login.main_window.login_update()
                     Login.close()
         Login.timerEvent = timerEvent
 

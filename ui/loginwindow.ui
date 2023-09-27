@@ -141,6 +141,19 @@
     <string>记住密码</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="pushButton_2">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>200</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>获取验证码</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections>
@@ -192,10 +205,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>LoginWindow</receiver>
+   <slot>get_sms()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>156</x>
+     <y>222</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>149</x>
+     <y>263</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>loginwindow_save_password()</slot>
   <slot>loginwindow_loginfunc_combox()</slot>
   <slot>loginwindow_login()</slot>
+  <slot>get_sms()</slot>
  </slots>
 </ui>
