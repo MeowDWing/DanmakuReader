@@ -2,6 +2,8 @@ import json
 import time
 from enum import Enum
 from collections.abc import Iterable
+from PyQt5.QtWidgets import QWidget, QTextBrowser
+from PyQt5 import QtGui
 
 _iosetting__tag_dict = {
     'CAPTAIN': '\033[94m',  # Blue bright
@@ -32,18 +34,36 @@ _iosetting__head_set = {
 }
 
 
-class Color(Enum):
-    red = "#FF0000"
-    green = "#00FF00"
-    blue = "#0000FF"
-    black = "#000000"
-    white = "#FFFFFF"
-    snow = "#FFFAFA"
-    azure = "#F0FFFF"
-    aquamarine = "#7FFFD4"
-    yellow = "#FFFF00"
-    orange = "#FFA500"
-    purple = "#A020F0"
+class HeadSet(Enum):
+    captain_buy_3 = "DeepSkyBlue"
+    captain_buy_2 = "DodgerBlue"
+    captain_buy_1 = "RoyalBlue"
+    tips = "DarkCyan"
+    error = "Red"
+    warning = "Yellow"
+    success = "Lime"
+    system = "OrangeRed"
+    up = "Chartreuse"
+    fans = "Azure"
+    ctrl = "Aqua"
+    captain = "Blue"
+
+
+_iosetting__head = {
+    'CAPTAIN': HeadSet.captain.value,
+    'CAPTAIN_BUY_3': HeadSet.captain_buy_3.value,  # Deep Sky Blue
+    'CAPTAIN_BUY_2': HeadSet.captain_buy_2.value,  # Doder Blue
+    'CAPTAIN_BUY_1': HeadSet.captain_buy_1.value,  # Royal Blue
+    'CTRL': HeadSet.ctrl.value,
+    'ERROR': HeadSet.error.value,
+    'FANS': HeadSet.fans.value,
+    'SYSTEM': HeadSet.system.value,  # Red bright
+    'SUCCESS': HeadSet.success.value,  # Green bottom
+    'UP': HeadSet.up.value,  # Green bright
+    'WARNING': HeadSet.warning.value,  # Yellow bottom
+    'TIPS': HeadSet.tips.value,
+    "SPECIAL": None
+}
 
 
 def print_simple(text: str, base: str = 'NORMAL',
@@ -117,6 +137,66 @@ def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
         log_file.close()
 
 
+def display_details(text: str, tag: str = 'NORMAL', ui: QTextBrowser | None = None,
+                    head: str = None, prefix: str = None, special_color: str | None = None, newline: bool = True):
+    bracket = "<span style=\"color:{}\">{}{}</span>"
+    if newline:
+        bracket.join("<br>")
+
+    if tag in _iosetting__head_set:
+        if head is None:
+            head = tag
+
+    if tag not in _iosetting__head.keys():
+        tag = None
+
+    fro = ""
+    if head is not None:
+        if prefix is not None:
+            fro = set_head(head, prefix)
+        else:
+            fro = set_head(head)
+
+    if special_color is None:
+        if tag is None:
+            display_content = text
+        else:
+            display_content = bracket.format(_iosetting__head[tag], fro, text)
+    else:
+        display_content = bracket.format(special_color, fro, text)
+
+    if ui is not None:
+        ui.append(display_content)
+        try:
+            ui.moveCursor(11)
+        except Exception as e:
+            pass
+
+    return display_content
+
+
+def display_simple(text: str, base: str = 'NORMAL',
+                   special_color="White", newline=True, ui: QTextBrowser | None = None):
+    bracket = "<span style=\"color:{}\">{}</span>"
+    if newline:
+        bracket.join("<br>")
+
+    if base not in _iosetting__head:
+        base = None
+
+    if special_color is None:
+        if base is None:
+            display_content = text
+        else:
+            display_content = bracket.format(_iosetting__head[base], text)
+    else:
+        display_content = bracket.format(special_color, text)
+
+    if ui is not None:
+        ui.append(display_content)
+    return display_content
+
+
 def logging(filename: str, txt: Iterable | str,
             head: str = None, prefix: str = None, wrong_lvl: str = '',
             exception: str = 'Unknown', except_msg: str = 'No Describe'):
@@ -149,6 +229,11 @@ def logging(filename: str, txt: Iterable | str,
 
     with open(f'./logging/{filename}', mode='a', encoding='utf-8') as f:
         f.writelines(lines)
+
+
+def logging_simple(filename: str, txt: str):
+    with open(f'./logging/{filename}', mode='a', encoding='utf-8') as f:
+        f.write(txt)
 
 
 def set_head(head, prefix=None):
