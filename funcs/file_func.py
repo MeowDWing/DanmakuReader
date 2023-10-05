@@ -27,7 +27,7 @@ class InitialParser:
         self.sessdate = c.sessdata
         self.bili_jct = c.bili_jct
         self.buvid3 = c.buvid3
-        self.id = c.ac_time_value
+        self.ac_time_value = c.ac_time_value
 
     def update_credential(self):
         self.initial['sessdata'] = self.sessdate

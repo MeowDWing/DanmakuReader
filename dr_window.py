@@ -36,7 +36,7 @@ class DanmakuReaderMainWindow(QMainWindow):
         self.show()
 
     def login_update(self):
-        if credential.check_cookies(global_setting.credential):
+        if sync(credential.check_cookies(global_setting.credential)):
             n = global_setting.user_info.nickname()
             self.ui.welcome.setText(
                 f"<p style=\" font-weight:600; color:#0000ff; text-align:center\">欢迎回来：{n}</p>"
@@ -52,7 +52,7 @@ class DanmakuReaderMainWindow(QMainWindow):
         self.close()
 
     def settings(self):
-        pass
+        self.ui.Settings.setText("还没做")
 
     def check(self, action: QtWidgets.QAction):
         act_name = action.text()
@@ -104,7 +104,7 @@ class LaunchWindow(QWidget):
             {
                 color: white;
                 background: black;
-                font-family:Times New Roman
+                font-family:system-ui,-apple-system,BlinkMacSystemFont,segoe ui,Roboto,Helvetica,Arial,sans-serif,apple color emoji,segoe ui emoji,segoe ui symbol;
             }
         ''')
         self.ui.recivetext.setStyleSheet('''
@@ -112,7 +112,7 @@ class LaunchWindow(QWidget):
             {
                 color: white;
                 background: black;
-                font-family:Times New Roman
+                font-family:system-ui,-apple-system,BlinkMacSystemFont,segoe ui,Roboto,Helvetica,Arial,sans-serif,apple color emoji,segoe ui emoji,segoe ui symbol;
             }
         ''')
 
@@ -180,7 +180,8 @@ class LoginWindow(QWidget):
             sign = login_func.login_by_sms(phone, code)
 
         if sign == login_func.LoginState.success:
-            self.main_window.update_window()
+            self.main_window.display()
+            self.main_window.login_update()
             self.close()
         elif sign is None:
             pass  # raise 登录状态错误

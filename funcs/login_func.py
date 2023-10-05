@@ -22,11 +22,40 @@ class LoginState(Enum):
     fail = "登陆错误"
 
 
-def login_check(c: Credential) -> bool:
+class UserInfoParser:
 
-    ret = sync(c.check_valid())
+    def __init__(self, c: Credential | None = None):
+        if c.sessdata is not None:
+            try:
+                self.info = sync(user.get_self_info(c))
+            except Exception as e:
+                print(e)
+        else:
+            self.info = {
+                'name': None,
+                'mid': None
+            }
 
-    return ret
+    def nickname(self):
+        return self.info['name']
+
+    def uid(self):
+        return self.info['mid']
+
+
+def login_check(c: Credential) -> (bool, UserInfoParser):
+    """
+    :return: 登录状态， 用户信息
+    """
+    success = False
+    self_info = None
+    try:
+        self_info = UserInfoParser(c)
+        success = True
+    except Exception as e:
+        err = e.__str__()
+
+    return success, self_info
 
 
 def get_buvid3() -> str:
@@ -49,24 +78,6 @@ def login_info_save(c: Credential) -> bool:
         return True
 
 
-class UserInfoParser:
-
-    def __init__(self, c: Credential | None = None):
-        if c.sessdata is not None:
-            self.info = sync(user.get_self_info(c))
-        else:
-            self.info = {
-                'name': None,
-                'mid': None
-            }
-
-    def nickname(self):
-        return self.info['name']
-
-    def uid(self):
-        return self.info['mid']
-
-
 def login_by_pw(username: str | None = None, password: str | None = None, save=False) -> LoginState:
 
     check = False
@@ -78,7 +89,6 @@ def login_by_pw(username: str | None = None, password: str | None = None, save=F
     except exceptions.LoginError as el:
         c = None
         ios.print_details(el.msg, tag='WRONG', head='WRONG', prefix='LOGIN')
-        time.sleep(1)
 
     if isinstance(c, login.Check):
         # 还需验证
@@ -98,8 +108,10 @@ def login_by_pw(username: str | None = None, password: str | None = None, save=F
         global_setting.INITIAL.credential_consist(c)
         global_setting.INITIAL.update_and_dump()
 
-        if login_check(c):
-            global_setting.user_info = UserInfoParser(c)
+        login_success, self_info = login_check(c)
+
+        if login_success:
+            global_setting.user_info = self_info
             return LoginState.success
         else:
             return LoginState.fail
@@ -132,34 +144,14 @@ def login_by_sms(phone, code) -> LoginState:
         c.sessdata = urllib.parse.quote(c.sessdata)
         print(c.sessdata)
         global_setting.INITIAL.credential_consist(c)
-        global_setting.INITIAL.dump()
+        global_setting.INITIAL.update_and_dump()
 
-        if login_check(c):
-            global_setting.user_info = UserInfoParser(c)
-
+        login_success, self_info = login_check(c)
+        if login_success:
+            global_setting.user_info = self_info
             return LoginState.success
         else:
             return LoginState.fail
-
-
-def semi_autologin(in_run: bool = False):
-    login_info = ios.JsonParser.load('./files/INITIAL')
-    username = login_info['id']
-    pw = login_info['pw']
-    if username is not None and pw is not None:
-        credentials, _, _ = login_by_pw(username=username, password=pw)
-    else:
-        credentials = None
-
-    if credentials is None:
-        ios.print_details('自动登录失败，请尝试手动登录', tag='SYSTEM', head='ERROR')
-        time.sleep(3)
-        if in_run:
-            exit()
-        else:
-            return credentials  # None
-    else:
-        return credentials
 
 
 def get_from_web():

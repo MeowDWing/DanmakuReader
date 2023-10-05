@@ -3,6 +3,7 @@ import time
 from enum import Enum
 from collections.abc import Iterable
 from PyQt5.QtWidgets import QWidget, QTextBrowser
+from PyQt5 import QtGui
 
 _iosetting__tag_dict = {
     'CAPTAIN': '\033[94m',  # Blue bright
@@ -166,6 +167,10 @@ def display_details(text: str, tag: str = 'NORMAL', ui: QTextBrowser | None = No
 
     if ui is not None:
         ui.append(display_content)
+        try:
+            ui.moveCursor(11)
+        except Exception as e:
+            pass
 
     return display_content
 
