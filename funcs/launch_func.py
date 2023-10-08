@@ -6,6 +6,9 @@ import reader as rd
 
 
 class RecThread(QThread):
+    """
+        接收线程
+    """
     def __init__(self, _g_queue: deque, _ui: launchwindow.Ui_Launch):
         super().__init__()
         self._g_queue = _g_queue
@@ -17,6 +20,9 @@ class RecThread(QThread):
 
 
 class RdThread(QThread):
+    """
+        读线程
+    """
     def __init__(self, _g_queue: deque, _ui: launchwindow.Ui_Launch):
         super().__init__()
         self._g_queue = _g_queue

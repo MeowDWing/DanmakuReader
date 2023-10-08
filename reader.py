@@ -37,7 +37,11 @@ class Reader:
 
         self.player = TxtProcess()
 
-    def ban_word_set_initial(self):
+    def ban_word_set_initial(self) -> None:
+        """
+            屏蔽词提取
+
+        """
         try:
             with open('ban_word.txt', mode='r', encoding='utf-8') as f:
                 lines = f.readlines()
@@ -59,7 +63,7 @@ class Reader:
         ios.display_details(f'屏蔽词列表{str(self.ban_word_set)}', tag='UP', ui=self.ui)
         ios.display_details(f"屏蔽匹配词列表{self.re_ban_str.split('|')}", tag='UP', ui=self.ui)
 
-    def reader(self):
+    def reader(self) -> None:
         former = ''
         print('[read]wait initial')
         time.sleep(5)
@@ -151,14 +155,14 @@ class Reader:
                 self.danmaku_len = len(self.danmaku_queue)
                 ios.display_details("当前队列以同步", tag="SYSTEM", ui=self.ui)
 
-    def popleft_n(self, n):
+    def popleft_n(self, n) -> None:
         for _ in range(n):
             self.danmaku_queue.popleft()
         self.danmaku_len = len(self.danmaku_queue)
 
 
 class TxtProcess:
-
+    """ 文本读取器（pyttsx3） """
     def __init__(self):
         self.say_engin = pyttsx3.init()
         self.say_engin.setProperty('rate', 250)
@@ -166,7 +170,7 @@ class TxtProcess:
         voices = self.say_engin.getProperty('voices')
         self.say_engin.setProperty('voice', voices[0].id)
 
-    def txt2audio(self, message: str):
+    def txt2audio(self, message: str) -> None:
         self.say_engin.say(message)
         self.say_engin.runAndWait()
         self.say_engin.stop()

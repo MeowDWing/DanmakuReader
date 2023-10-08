@@ -14,7 +14,11 @@ from funcs import launch_func, file_func, login_func
 
 
 class DanmakuReaderMainWindow(QMainWindow):
+    """
 
+        主窗口
+
+    """
     def __init__(self):
         super().__init__()
         self.ui = danmakureaderwindow.Ui_DanmakuReader()
@@ -28,14 +32,21 @@ class DanmakuReaderMainWindow(QMainWindow):
             self.ui.welcome.setText(
                 "<p style=\" font-weight:600; color:#0000ff; text-align:center\">未登录</p>"
             )
+
+        # 子窗口名初始化
         self.update_window = None
         self.login_window = None
         self.launch_window = None
 
-    def display(self):
+    def display(self) -> None:
         self.show()
 
-    def login_update(self):
+    def login_update(self) -> None:
+        """
+
+            更新登录状态
+
+        """
         if sync(credential.check_cookies(global_setting.credential)):
             n = global_setting.user_info.nickname()
             self.ui.welcome.setText(
@@ -46,15 +57,30 @@ class DanmakuReaderMainWindow(QMainWindow):
                 "<p style=\" font-weight:600; color:#0000ff; text-align:center\">未登录</p>"
             )
 
-    def launch(self):
+    def launch(self) -> None:
+        """
+
+            启动（名词）窗口
+
+        """
         self.launch_window = LaunchWindow()
         self.launch_window.display()
         self.close()
 
-    def settings(self):
+    def settings(self) -> None:
+        """
+
+            设置窗口
+
+        """
         self.ui.Settings.setText("还没做")
 
-    def check(self, action: QtWidgets.QAction):
+    def check(self, action: QtWidgets.QAction) -> None:
+        """
+            查看操作
+
+        :param action: 选择的选项
+        """
         act_name = action.text()
         if act_name == "屏蔽词列表":
             os.system("ban_word.txt")
@@ -62,12 +88,24 @@ class DanmakuReaderMainWindow(QMainWindow):
             self.update_window = UpdateContentWindow()
             self.update_window.show()
 
-    def login(self):
+    def login(self) -> None:
+        """
+
+            登录窗口
+
+        """
         self.login_window = LoginWindow(self)
         self.login_window.show()
 
-    def reset(self):
+    @staticmethod
+    def reset() -> None:
+        """
 
+            重置选项
+
+        """
+
+        # 确认框
         confirm = QMessageBox()
         confirm.setIcon(QMessageBox.Question)
         confirm.setWindowTitle("重置确认")
@@ -85,13 +123,17 @@ class DanmakuReaderMainWindow(QMainWindow):
                 os.remove('ban_word.txt')
             initial.initial()
             ios.JsonParser.dump('./files/INITIAL', save_initial_dict, mode='w')
-
         else:
             pass
 
 
 class LaunchWindow(QWidget):
-    def __init__(self):
+    """
+
+        启动窗口
+
+    """
+    def __init__(self) -> None:
         super().__init__()
         self.ui = launchwindow.Ui_Launch()
         self.ui.setupUi(self)
@@ -99,6 +141,7 @@ class LaunchWindow(QWidget):
         self.process_receiver: QtCore.QThread | None = None
         self.process_reader: QtCore.QThread | None = None
 
+        # 窗口样式设置（黑底色， 默认字体， 白色字体）
         self.ui.readtext.setStyleSheet('''
             QTextBrowser 
             {
@@ -116,12 +159,16 @@ class LaunchWindow(QWidget):
             }
         ''')
 
-    def display(self):
+    def display(self) -> None:
+        """
 
+            显示界面，并初始化接受机制和读取机制
+
+        """
         self.show()
         self.init_reader_and_receiver()
 
-    def init_reader_and_receiver(self):
+    def init_reader_and_receiver(self) -> None:
         self.__global_queue = deque()
         print('正在读取房间号...')
 
@@ -135,10 +182,15 @@ class LaunchWindow(QWidget):
         self.process_reader.start()
         self.process_receiver.start()
 
-    def join2txt_browser(self, which, txt):
+    def join2txt_browser(self, which, txt) -> None:
         pass
 
-    def test(self):
+    def test(self) -> None:
+        """
+
+            定时器测试用例，无实际用处
+        :return:
+        """
         self.startTimer(100)
 
     def timerEvent(self, a0) -> None:
@@ -146,6 +198,11 @@ class LaunchWindow(QWidget):
 
 
 class LoginWindow(QWidget):
+    """
+
+        登录窗口类
+
+    """
 
     def __init__(self, main_window: DanmakuReaderMainWindow):
         super().__init__()
@@ -160,12 +217,19 @@ class LoginWindow(QWidget):
         self.__self_login_func_choice(self.login_func_index)
 
 
-    def display(self):
+    def display(self) -> None:
         self.show()
 
-    def loginwindow_login(self):
+    def loginwindow_login(self) -> None:
+        """
+
+            ”登录“按钮槽
+
+        """
+
         sign: login_func.LoginState | None = None
         idx = self.login_func_index
+        """ idx: 0->账号密码 1->验证码 2->二维码 """
         if idx == 0:
             account = self.ui.nnl.text()
             pw = self.ui.pwl.text()
@@ -188,20 +252,33 @@ class LoginWindow(QWidget):
         else:
             pass  # 显示错误数据
 
-    def get_sms(self):
+    def get_sms(self) -> None:
+        """ 验证码发送 """
         phone = self.ui.nnl.text()
         login_func.get_sms_code(phone)
 
-    def loginwindow_save_password(self, save):
+    def loginwindow_save_password(self, save: bool) -> None:
+        """
+            是否保存账号密码（not yet finished）
+        :param save: True or False
+        """
         self.save_password_flag = save
         global_setting.settings['sys_setting']['save_account'] = save
         global_setting.update_setting()
 
-    def loginwindow_loginfunc_combox(self, idx):
+    def loginwindow_loginfunc_combox(self, idx) -> None:
+        """
+            登录方式选择
+        :param idx: 0-账号密码 1-验证码 2-二维码
+        """
         self.__self_login_func_choice(idx)
 
-    def __self_login_func_choice(self, idx):
+    def __self_login_func_choice(self, idx) -> None:
+        """
+            方式选择导致的界面变更
 
+        :param idx: 0-账号密码 1-验证码 2-二维码
+        """
         self.login_func_index = idx
 
         if idx == 0:
@@ -222,24 +299,30 @@ class LoginWindow(QWidget):
 
 
 class QRCodeWindow(QWidget):
-    def __init__(self, main_window):
+    """ 二维码登录界面（ui复制自bilibili-api-python项目）"""
+    def __init__(self, main_window) -> None:
+        """
+        :param main_window: 主界面实例
+        """
         super().__init__()
         self.main_window = main_window
         self.ui = login_qrcode.Ui_Login()
         self.ui.setupUi(self)
 
-    def display(self):
+    def display(self) -> None:
         self.show()
 
 
 class UpdateContentWindow(QWidget):
-    def __init__(self):
+    """ ”更新“按钮界面 """
+    def __init__(self) -> None:
         super().__init__()
         self.ui = updatecontent.Ui_UpdateContent()
         self.ui.setupUi(self)
         self.set_content()
 
-    def set_content(self):
+    def set_content(self) -> None:
+        """ markdown文本内容设置 """
         with open(f"{global_setting.version}.md", mode='r', encoding='utf-8') as f:
             lines = f.readlines()
         content = "".join(lines)

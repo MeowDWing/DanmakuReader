@@ -4,20 +4,20 @@
 
 """
 from bilibili_api import Credential
+
 import iosetting as ios
 from funcs import file_func, login_func
 
 # 版本控制
-
 version = 'v1.0-alpha'
 proj_name = 'Danmaku  Reader'
 
 """全局变量"""
-settings = {}
-INITIAL: file_func.InitialParser | None = None
-user_info: login_func.UserInfoParser | None = None
-offline = False
-credential: str | None | Credential = None
+settings = {}  # 设置
+INITIAL: file_func.InitialParser | None = None  # INITIAL文件解释器
+user_info: login_func.UserInfoParser | None = None  # 登陆用户信息解释器
+offline = False  # 是否离线登录标记，后续优化如settings
+credential: str | None | Credential = None  # 登陆证书
 
 
 def load_setting():

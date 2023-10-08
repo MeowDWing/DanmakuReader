@@ -1,3 +1,8 @@
+"""
+
+    登录函数
+
+"""
 import urllib.parse
 import uuid
 import os
@@ -14,7 +19,9 @@ import global_setting
 
 
 class LoginState(Enum):
-
+    """
+        登录状态类
+    """
     lack = "未输入账号或密码"
     success = "登陆成功"
     need_qrcode = "请使用二维码登录"
@@ -23,7 +30,7 @@ class LoginState(Enum):
 
 
 class UserInfoParser:
-
+    """ 用户信息解释器 """
     def __init__(self, c: Credential | None = None):
         if c.sessdata is not None:
             try:
@@ -79,7 +86,13 @@ def login_info_save(c: Credential) -> bool:
 
 
 def login_by_pw(username: str | None = None, password: str | None = None, save=False) -> LoginState:
-
+    """
+        账号密码登录
+    :param username: 账号， 邮箱或者手机
+    :param password: 密码
+    :param save: 是否保存
+    :return: 登录状态
+    """
     check = False
     if username is None or password is None:
         return LoginState.lack
@@ -124,12 +137,20 @@ def login_by_pw(username: str | None = None, password: str | None = None, save=F
 
 
 def get_sms_code(phone: str):
-
+    """
+        验证码登录->验证码获取
+    :param phone: 手机号（仅限国内，不包含港澳台）
+    """
     send_sms(PhoneNumber(phone, country="+86"))  # 默认设置地区为中国大陆
 
 
 def login_by_sms(phone, code) -> LoginState:
-
+    """
+        验证码登录
+    :param phone: 手机号
+    :param code: 验证码
+    :return: 登陆状态
+    """
     c = login_with_sms(PhoneNumber(phone, country="+86"), code)
     if isinstance(c, login.Check):
         # 还需验证
@@ -155,6 +176,9 @@ def login_by_sms(phone, code) -> LoginState:
 
 
 def get_from_web():
+    """
+        已废弃，正在找时间删除
+    """
     os.system('cls')
     ios.print_details('你可以通过以下方式登录：\n'
                       '图文步骤见：https://nemo2011.github.io/bilibili-api/#/get-credential\n'
