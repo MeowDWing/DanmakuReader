@@ -1,6 +1,7 @@
 import os
 from collections import deque
 
+import bilibili_api
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QMainWindow, QWidget, QMessageBox
 
@@ -9,7 +10,7 @@ from bilibili_api import login, settings, exceptions, credential, sync
 import initial
 import global_setting
 import iosetting as ios
-from ui import danmakureaderwindow, updatecontent, login_qrcode, loginwindow, launchwindow
+from ui import danmakureaderwindow, updatecontent, login_qrcode, loginwindow, launchwindow, settingswindow
 from funcs import launch_func, file_func, login_func
 
 
@@ -37,6 +38,7 @@ class DanmakuReaderMainWindow(QMainWindow):
         self.update_window = None
         self.login_window = None
         self.launch_window = None
+        self.settings_window = None
 
     def display(self) -> None:
         self.show()
@@ -74,6 +76,8 @@ class DanmakuReaderMainWindow(QMainWindow):
 
         """
         self.ui.Settings.setText("还没做")
+        self.settings_window = SettingsWindow()
+        self.settings_window.display()
 
     def check(self, action: QtWidgets.QAction) -> None:
         """
@@ -315,7 +319,7 @@ class QRCodeWindow(QWidget):
 
 class UpdateContentWindow(QWidget):
     """ ”更新“按钮界面 """
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
         self.ui = updatecontent.Ui_UpdateContent()
         self.ui.setupUi(self)
@@ -328,3 +332,41 @@ class UpdateContentWindow(QWidget):
         content = "".join(lines)
         print(content)
         self.ui.textBrowser.setMarkdown(content)
+
+
+class SettingsWindow(QWidget):
+    """ 设置界面 """
+    def __init__(self):
+        super().__init__()
+        self.ui = settingswindow.Ui_settings_window()
+        self.ui.setupUi(self)
+        self.changed = False
+        self._init()
+
+    def _init(self) -> None:
+        self.ui.sessdate_line.setText(global_setting.INITIAL.sessdate)
+        self.ui.bili_jct_line.setText(global_setting.INITIAL.bili_jct)
+        self.ui.buvid3_line.setText(global_setting.INITIAL.buvid3)
+
+    def display(self):
+        self.show()
+
+    def save_and_close(self) -> None:
+        """ 保存并关闭按钮行为 """
+        if self.changed:
+            sessdata = self.ui.sessdate_line.text()
+            bili_jct = self.ui.bili_jct_line.text()
+            buvid3 = self.ui.buvid3_line.text()
+            ac_time_value = global_setting.INITIAL.ac_time_value
+            c = bilibili_api.Credential(sessdata=sessdata, bili_jct=bili_jct, buvid3=buvid3, ac_time_value=ac_time_value)
+
+            global_setting.INITIAL.credential_consist(c)
+            global_setting.INITIAL.update_and_dump()
+        else:
+            pass
+
+        self.close()
+
+    def text_changed(self) -> None:
+        """ 是否更新 """
+        self.changed = True

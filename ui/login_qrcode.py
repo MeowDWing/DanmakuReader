@@ -64,6 +64,7 @@ class Ui_Login(object):
                     credential = events[1]
                     global_setting.credential = credential
                     global_setting.INITIAL.credential_consist(credential)
+                    global_setting.INITIAL.update_and_dump()
                     global_setting.user_info = login_func.UserInfoParser(credential)
                     reply = QtWidgets.QMessageBox.information(
                         Login,
