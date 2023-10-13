@@ -9,11 +9,11 @@ import iosetting as ios
 from funcs import file_func, login_func
 
 # 版本控制
-version = 'v1.0-alpha'
-proj_name = 'Danmaku  Reader'
+version = 'v1.1-alpha'
+proj_name = 'Danmaku Reader'
 
 """全局变量"""
-settings = {}  # 设置
+settings: file_func.SettingsParser | None = None  # 设置
 INITIAL: file_func.InitialParser | None = None  # INITIAL文件解释器
 user_info: login_func.UserInfoParser | None = None  # 登陆用户信息解释器
 offline = False  # 是否离线登录标记，后续优化如settings
@@ -24,17 +24,10 @@ def load_setting():
 
     global settings, INITIAL, user_info, credential
 
-    settings = ios.JsonParser.load('./files/settings.txt')
+    settings = file_func.SettingsParser()
     INITIAL = file_func.InitialParser()
 
     credential = INITIAL.get_credential()
     if credential is not None:
         user_info = login_func.UserInfoParser(credential)
 
-
-def update_setting():
-
-    global settings
-    set_backup = ios.JsonParser.load('./files/settings.txt')
-    ios.JsonParser.dump('./files/settings_backup.txt', set_backup, mode='w')
-    ios.JsonParser.dump('./files/settings.txt', settings, mode='w')

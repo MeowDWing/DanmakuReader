@@ -75,7 +75,6 @@ class DanmakuReaderMainWindow(QMainWindow):
             设置窗口
 
         """
-        self.ui.Settings.setText("还没做")
         self.settings_window = SettingsWindow()
         self.settings_window.display()
 
@@ -213,9 +212,15 @@ class LoginWindow(QWidget):
         self.save_password_flag: bool = False
         self.ui = loginwindow.Ui_LoginWindow()
         self.ui.setupUi(self)
-        self.save_password_flag = global_setting.settings['sys_setting']['save_account']
+
+        account = global_setting.INITIAL.id
+        self.ui.nnl.setText(account)
+
+        self.save_password_flag = global_setting.settings.save_account
         if self.save_password_flag:
             self.ui.checkBox.setChecked(True)
+            self.ui.pwl.setText(global_setting.INITIAL.pw)
+
         self.login_func_index = self.ui.comboBox.currentIndex()
         self.main_window = main_window
         self.__self_login_func_choice(self.login_func_index)
@@ -267,8 +272,8 @@ class LoginWindow(QWidget):
         :param save: True or False
         """
         self.save_password_flag = save
-        global_setting.settings['sys_setting']['save_account'] = save
-        global_setting.update_setting()
+        global_setting.settings.save_account = save
+        global_setting.settings.update_conform_and_dump()
 
     def loginwindow_loginfunc_combox(self, idx) -> None:
         """
@@ -297,7 +302,7 @@ class LoginWindow(QWidget):
             self.ui.pwl.setEchoMode(0)
         elif idx == 2:
             self.ui.checkBox.hide()
-            self.ui.pushButton.hide()
+            self.ui.pushButton_2.hide()
             self.qrcode_window = QRCodeWindow(self.main_window)
             self.qrcode_window.display()
 
@@ -312,10 +317,15 @@ class QRCodeWindow(QWidget):
         self.main_window = main_window
         self.ui = login_qrcode.Ui_Login()
         self.ui.setupUi(self)
+        self.timerEvent = QWidget.timerEvent
 
     def display(self) -> None:
         self.show()
 
+    def close(self) -> bool:
+        self.timerEvent = QWidget.timerEvent
+        ret = super().close()
+        return ret
 
 class UpdateContentWindow(QWidget):
     """ ”更新“按钮界面 """
@@ -340,7 +350,9 @@ class SettingsWindow(QWidget):
         super().__init__()
         self.ui = settingswindow.Ui_settings_window()
         self.ui.setupUi(self)
-        self.changed = False
+        self.cookie_changed = False
+        self.basic_changed = False
+        self.sys_changed = False
         self._init()
 
     def _init(self) -> None:
@@ -348,12 +360,22 @@ class SettingsWindow(QWidget):
         self.ui.bili_jct_line.setText(global_setting.INITIAL.bili_jct)
         self.ui.buvid3_line.setText(global_setting.INITIAL.buvid3)
 
-    def display(self):
+        self.ui.rid_line.setText(str(global_setting.settings.rid))
+        self.ui.lvl_combox.setCurrentText(str(global_setting.settings.min_lvl))
+
+        self.ui.auto_login_check.setChecked(global_setting.settings.login)
+        self.ui.debug_check.setChecked(global_setting.settings.debug)
+
+    def display(self) -> None:
+        self.cookie_changed = False
+        self.basic_changed = False
+        self.sys_changed = False
+        self._init()
         self.show()
 
     def save_and_close(self) -> None:
         """ 保存并关闭按钮行为 """
-        if self.changed:
+        if self.cookie_changed:
             sessdata = self.ui.sessdate_line.text()
             bili_jct = self.ui.bili_jct_line.text()
             buvid3 = self.ui.buvid3_line.text()
@@ -362,11 +384,29 @@ class SettingsWindow(QWidget):
 
             global_setting.INITIAL.credential_consist(c)
             global_setting.INITIAL.update_and_dump()
-        else:
-            pass
+
+        if self.basic_changed or self.sys_changed:
+            basic_dict = None
+            sys_dict = None
+            if self.basic_changed:
+                basic_dict = global_setting.settings.basic_settings_dict_constructor(
+                    rid=self.ui.rid_line.text(), min_lvl=self.ui.lvl_combox.currentText()
+                )
+            if self.sys_changed:
+                sys_dict = global_setting.settings.sys_settings_dict_constructor(
+                    login=self.ui.auto_login_check.isChecked(), debug=self.ui.debug_check.isChecked()
+                )
+            global_setting.settings.update_conform_and_dump(basic_dict=basic_dict, sys_dict=sys_dict)
+
 
         self.close()
 
-    def text_changed(self) -> None:
+    def cookie_change(self) -> None:
         """ 是否更新 """
-        self.changed = True
+        self.cookie_changed = True
+
+    def sys_change(self) -> None:
+        self.sys_changed = True
+
+    def basic_change(self) -> None:
+        self.basic_changed = True

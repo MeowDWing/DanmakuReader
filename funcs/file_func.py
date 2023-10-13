@@ -85,3 +85,88 @@ class InitialParser:
         self.update()
         self.dump()
 
+
+class SettingsParser:
+    """ settings 文件解释器 """
+    def __init__(self):
+        self.settings = ios.JsonParser.load('./files/settings.txt')
+
+        self.basic = self.settings['basic_setting']
+        self.rid = self.basic['rid']
+        self.min_lvl = self.basic['min_level']
+
+        self.sys = self.settings['sys_setting']
+        self.login = self.sys['login']
+        self.save_account = self.sys['save_account']
+        self.debug = self.sys['debug']
+
+    def to_update(self, basic_dict=None, sys_dict=None):
+        if basic_dict is not None:
+            self.delete_key_is_null(basic_dict)
+            self.basic.update(basic_dict)
+
+        if sys_dict is not None:
+            self.delete_key_is_null(sys_dict)
+            self.sys.update(sys_dict)
+
+    def to_conform(self):
+        self.basic = self.settings['basic_setting']
+        self.rid = self.basic['rid']
+        self.min_lvl = self.basic['min_level']
+
+        self.sys = self.settings['sys_setting']
+        self.login = self.sys['login']
+        self.save_account = self.sys['save_account']
+        self.debug = self.sys['debug']
+
+    def dump(self):
+        d = {
+            'basic_setting': self.basic,
+            'sys_setting': self.sys
+        }
+        self.settings.update(d)
+        ios.JsonParser.dump('./files/settings.txt', self.settings, mode='w')
+
+    def update_conform_and_dump(self, basic_dict=None, sys_dict=None):
+        self.to_update(basic_dict=basic_dict, sys_dict=sys_dict)
+        self.to_conform()
+        self.dump()
+
+    @staticmethod
+    def basic_settings_dict_constructor(rid: str|int|None = None, min_lvl: str|int|None = None):
+        """
+
+        :param rid:
+        :param min_lvl:
+        :return:
+        """
+        return {
+            'rid': int(rid),
+            'min_level': int(min_lvl),
+        }
+
+    @staticmethod
+    def sys_settings_dict_constructor(login: bool|None = None, save_account: bool|None = None, debug: bool|None = None):
+        """
+
+        :param login:
+        :param save_account:
+        :param debug:
+        :return:
+        """
+        return {
+            'login': login,
+            'save_account': save_account,
+            'debug': debug,
+        }
+
+    @staticmethod
+    def delete_key_is_null(d: dict):
+        """
+
+        :param d:
+        :return:
+        """
+        for key in d:
+            if d[key] is None:
+                d.pop(key)

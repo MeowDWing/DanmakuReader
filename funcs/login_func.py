@@ -108,8 +108,14 @@ def login_by_pw(username: str | None = None, password: str | None = None, save=F
         c = None
         check = True
     else:
-        global_setting.settings['sys_setting']['login'] = True
-        global_setting.update_setting()
+        global_setting.settings.login = True
+        global_setting.settings.update_conform_and_dump()
+
+    if save:
+        global_setting.INITIAL.pw = password
+    else:
+        global_setting.INITIAL.id = username
+    global_setting.INITIAL.update_and_dump()
 
     if c is not None:
         if save:

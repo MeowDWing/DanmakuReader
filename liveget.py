@@ -44,10 +44,10 @@ class LiveInfoGet:
         self.ui = ui.recivetext
 
         # 设置信息获取区 settings initial zone
-        self.room_id = global_setting.settings['basic_setting']['rid']
-        self.min_lvl = global_setting.settings['basic_setting']['min_level']
-        self.login_flag = global_setting.settings['sys_setting']['login']
-        self.debug_flag = global_setting.settings['sys_setting']['debug']
+        self.room_id = global_setting.settings.rid
+        self.min_lvl = global_setting.settings.min_lvl
+        self.login_flag = global_setting.settings.login
+        self.debug_flag = global_setting.settings.debug
 
         if self.min_lvl == 0:
             self.read_any_lvl = True
