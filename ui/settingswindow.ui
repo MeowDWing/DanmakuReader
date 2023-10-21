@@ -6,67 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>347</width>
-    <height>353</height>
+    <width>447</width>
+    <height>350</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>设置</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="1" column="1" rowspan="2">
-    <widget class="QGroupBox" name="system_box">
-     <property name="title">
-      <string>系统设置</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_5">
-      <item row="0" column="1">
-       <widget class="QCheckBox" name="auto_login_check">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="auto_login">
-        <property name="text">
-         <string>自动登录</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="debug">
-        <property name="text">
-         <string>debug</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QCheckBox" name="debug_check">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>150</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QGroupBox" name="initial_box">
      <property name="title">
@@ -110,7 +57,7 @@
      </layout>
     </widget>
    </item>
-   <item row="3" column="1">
+   <item row="3" column="2">
     <widget class="QPushButton" name="save_close">
      <property name="text">
       <string>保存并关闭</string>
@@ -282,6 +229,81 @@
      </layout>
     </widget>
    </item>
+   <item row="1" column="2" rowspan="2">
+    <widget class="QGroupBox" name="system_box">
+     <property name="title">
+      <string>系统设置</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_5">
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="auto_login_check">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="auto_login">
+        <property name="text">
+         <string>自动登录</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="debug">
+        <property name="text">
+         <string>debug</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QCheckBox" name="debug_check">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>150</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="1" rowspan="2">
+    <widget class="QGroupBox" name="ban_word_box">
+     <property name="title">
+      <string>屏蔽词设置</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_6">
+      <item row="1" column="0">
+       <widget class="QTextEdit" name="matching_edit"/>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="ban_word_intro">
+        <property name="text">
+         <string>说明</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>
@@ -293,8 +315,8 @@
    <slot>save_and_close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>337</x>
-     <y>343</y>
+     <x>437</x>
+     <y>340</y>
     </hint>
     <hint type="destinationlabel">
      <x>219</x>
@@ -309,8 +331,8 @@
    <slot>cookie_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>136</y>
+     <x>128</x>
+     <y>133</y>
     </hint>
     <hint type="destinationlabel">
      <x>68</x>
@@ -341,8 +363,8 @@
    <slot>cookie_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>184</x>
-     <y>99</y>
+     <x>128</x>
+     <y>97</y>
     </hint>
     <hint type="destinationlabel">
      <x>67</x>
@@ -357,8 +379,8 @@
    <slot>basic_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>149</x>
-     <y>217</y>
+     <x>129</x>
+     <y>228</y>
     </hint>
     <hint type="destinationlabel">
      <x>162</x>
@@ -373,8 +395,8 @@
    <slot>sys_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>324</x>
-     <y>61</y>
+     <x>427</x>
+     <y>63</y>
     </hint>
     <hint type="destinationlabel">
      <x>311</x>
@@ -389,8 +411,8 @@
    <slot>sys_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>315</x>
-     <y>104</y>
+     <x>427</x>
+     <y>102</y>
     </hint>
     <hint type="destinationlabel">
      <x>301</x>
@@ -405,12 +427,28 @@
    <slot>basic_change()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>142</x>
-     <y>271</y>
+     <x>129</x>
+     <y>277</y>
     </hint>
     <hint type="destinationlabel">
      <x>124</x>
      <y>271</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>matching_edit</sender>
+   <signal>cursorPositionChanged()</signal>
+   <receiver>settings_window</receiver>
+   <slot>ban_word_content_change()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>276</x>
+     <y>175</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>265</x>
+     <y>190</y>
     </hint>
    </hints>
   </connection>
@@ -420,5 +458,6 @@
   <slot>cookie_change()</slot>
   <slot>sys_change()</slot>
   <slot>basic_change()</slot>
+  <slot>ban_word_content_change()</slot>
  </slots>
 </ui>

@@ -1,3 +1,9 @@
+"""
+
+    dr_window: Danmaku Reader(dr) Window file
+
+"""
+
 import os
 from collections import deque
 
@@ -162,6 +168,8 @@ class LaunchWindow(QWidget):
             }
         ''')
 
+        self.ui.volume_bar.setValue(90)
+
     def display(self) -> None:
         """
 
@@ -184,6 +192,12 @@ class LaunchWindow(QWidget):
 
         self.process_reader.start()
         self.process_receiver.start()
+
+    def volume_adjust(self):
+
+        vol = self.ui.volume_bar.value()
+        norm_vol = vol/100.0
+        global_setting.narrator.say_engin.setProperty('volume', norm_vol)
 
     def join2txt_browser(self, which, txt) -> None:
         pass
@@ -350,12 +364,27 @@ class SettingsWindow(QWidget):
         super().__init__()
         self.ui = settingswindow.Ui_settings_window()
         self.ui.setupUi(self)
+        self.ui.ban_word_intro.setText(global_setting.ban_word.info)
         self.cookie_changed = False
         self.basic_changed = False
         self.sys_changed = False
-        self._init()
+        self.ban_changed = False
+        self.refresh()
 
-    def _init(self) -> None:
+    def ban_word_content_change(self):
+        self.ban_changed = True
+
+    def ban_word_content_set(self):
+
+        self.ui.matching_edit.clear()
+        for what_banned in global_setting.ban_word.all_match:
+            self.ui.matching_edit.append(what_banned)
+        for what_banned in global_setting.ban_word.regex_match:
+            self.ui.matching_edit.append('-'+what_banned)
+
+    def refresh(self) -> None:
+        self.ban_word_content_set()
+
         self.ui.sessdate_line.setText(global_setting.INITIAL.sessdate)
         self.ui.bili_jct_line.setText(global_setting.INITIAL.bili_jct)
         self.ui.buvid3_line.setText(global_setting.INITIAL.buvid3)
@@ -370,7 +399,8 @@ class SettingsWindow(QWidget):
         self.cookie_changed = False
         self.basic_changed = False
         self.sys_changed = False
-        self._init()
+        self.ban_changed = False
+        self.refresh()
         self.show()
 
     def save_and_close(self) -> None:
@@ -397,6 +427,22 @@ class SettingsWindow(QWidget):
                     login=self.ui.auto_login_check.isChecked(), debug=self.ui.debug_check.isChecked()
                 )
             global_setting.settings.update_conform_and_dump(basic_dict=basic_dict, sys_dict=sys_dict)
+
+        if self.ban_changed:
+            lines = self.ui.matching_edit.toPlainText().split()
+            all_match = []
+            regex_match = []
+            for line in lines:
+                line = line.strip()
+                if line[0] == '-':
+                    regex_match.append(line)
+                elif line[0] == '$':
+                    pass
+                else:
+                    all_match.append(line)
+            global_setting.ban_word.word_conform_update_and_dump(all_match_add=all_match, regex_match_add=regex_match)
+
+
 
 
         self.close()

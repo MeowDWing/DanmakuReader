@@ -266,9 +266,13 @@ def hex2dec_str(str16: str = '#FFFFFF') -> str:
 
 class JsonParser:
     @staticmethod
-    def load(filename) -> dict:
-        with open(filename, mode='r', encoding='utf-8') as f:
-            json2dict = json.load(f)
+    def load(filename) -> dict|None:
+        json2dict = None
+        try:
+            with open(filename, mode='r', encoding='utf-8') as f:
+                json2dict = json.load(f)
+        except FileNotFoundError:
+            print(f'[debug]{filename} not Found')
         return json2dict
 
     @staticmethod

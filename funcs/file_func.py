@@ -170,3 +170,71 @@ class SettingsParser:
         for key in d:
             if d[key] is None:
                 d.pop(key)
+
+
+class BanWordParser:
+    """ 禁词文件解释器 """
+    def __init__(self):
+        self.ban_word_dict = ios.JsonParser.load('./files/ban_word.txt')
+        self.info = self.ban_word_dict['info']
+        self.all_match:list = self.ban_word_dict['all_match']
+        self.regex_match:list = self.ban_word_dict['regex_match']
+
+    def ban_list_creator(self) -> (set, str|None):
+        """
+            将列表转换为reader.py可用的集合和字符串形式
+        :return: 完全匹配词列表， 正则方法可直接使用的字符串
+        """
+        regex_str = ''
+        all_match_set = set()
+        if self.all_match is not None and len(self.all_match)>0:
+            for word in self.all_match:
+                all_match_set.add(word)
+
+        if self.regex_match is not None and len(self.regex_match)>0:
+            for regex_word in self.regex_match:
+                regex_str = regex_str + regex_word + '|'
+            regex_str = regex_str[0:-1]
+
+        return all_match_set, regex_str
+
+    def word_conform_update(self, all_match_add: list|None = None, regex_match_add: list|None = None) -> None:
+        """
+            屏蔽词同步并更新
+        :param all_match_add: 完全屏蔽词的添加列表
+        :param regex_match_add: 正则匹配词的添加列表
+        :return:
+        """
+        temp_match = self.all_match
+        temp_match.append(all_match_add)
+        temp_match = set(temp_match)
+        temp_match = list(temp_match)
+        self.all_match = temp_match
+
+        temp_match = self.regex_match
+        temp_match.append(regex_match_add)
+        temp_match = set(temp_match)
+        temp_match = list(temp_match)
+        self.regex_match = temp_match
+
+        self.ban_word_dict['all_match'] = self.all_match
+        self.ban_word_dict['regex_match'] = self.regex_match
+
+    def dump(self):
+        """
+            加载到文件
+        :return:
+        """
+        ios.JsonParser.dump('./files/ban_word.txt', self.ban_word_dict, mode='w')
+
+    def word_conform_update_and_dump(
+            self, all_match_add: list | None = None, regex_match_add: list | None = None
+    ) -> None:
+        """
+            同步，更新并加载到文件
+        :param all_match_add:
+        :param regex_match_add:
+        :return:
+        """
+        self.word_conform_update(all_match_add=all_match_add, regex_match_add=regex_match_add)
+        self.dump()
