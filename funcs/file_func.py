@@ -1,7 +1,9 @@
 import os
+import uuid
 
 from bilibili_api.credential import Credential
 
+import global_setting
 import iosetting as ios
 
 
@@ -23,6 +25,19 @@ class InitialParser:
         self.bili_jct = self.initial['bili_jct']
         self.buvid3 = self.initial['buvid3']
         self.ac_time_value = self.initial['ac_time_value']
+        self.check()
+
+    def check(self):
+        if self.sessdate is not None and self.buvid3 is None:
+            self.buvid3 = self.get_buvid3()
+        self.update_and_dump()
+
+    @staticmethod
+    def get_buvid3() -> str:
+        """
+        :return: 得到临时的buvid3值
+        """
+        return str(uuid.uuid1()).lower() + 'infoc'
 
     def credential_consist(self, c: Credential) -> None:
         """
@@ -64,11 +79,12 @@ class InitialParser:
 
     def update(self) -> None:
         """
-            将证书与登录信息一起更新到临时字典中
+            将证书与登录信息一起更新到临时字典中和全局证书中
         :return:
         """
         self.update_account()
         self.update_credential()
+        global_setting.credential = self.get_credential()
 
     def dump(self) -> None:
         """

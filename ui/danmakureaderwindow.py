@@ -51,7 +51,6 @@ class Ui_DanmakuReader(object):
         self.banword.setObjectName("banword")
         self.update = QtWidgets.QAction(DanmakuReader)
         self.update.setObjectName("update")
-        self.checklist.addAction(self.banword)
         self.checklist.addAction(self.update)
         self.menuBar.addAction(self.checklist.menuAction())
 

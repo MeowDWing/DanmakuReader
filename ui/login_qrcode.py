@@ -4,14 +4,14 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from bilibili_api import user, sync
 from bilibili_api import login_func as api_login_func
-from funcs import login_func
+from funcs import login_func, file_func
 
 import global_setting
 
 
 # 二维码登录窗口类
 class Ui_Login(object):
-    def setupUi(self, Login):
+    def setupUi(self, Login) -> int:
         Login.setObjectName("Login")
         Login.setFixedSize(180, 210)
         icon = QtGui.QIcon()
@@ -47,7 +47,7 @@ class Ui_Login(object):
 
         self.pushButton_2.clicked.connect(update_qrcode)
 
-        Login.startTimer(1000)
+        timer_id:int = Login.startTimer(1000)
         def timerEvent(*args, **kwargs):
             _translate = QtCore.QCoreApplication.translate
             try:
@@ -64,6 +64,8 @@ class Ui_Login(object):
                 elif events[0] == api_login_func.QrCodeLoginEvents.DONE:
                     self.label_2.setText(_translate("Login", "🟢二维码登录"))
                     credential = events[1]
+                    if credential.buvid3 is None:
+                        credential.buvid3 = file_func.InitialParser.get_buvid3()
                     global_setting.credential = credential
                     global_setting.INITIAL.credential_consist(credential)
                     global_setting.INITIAL.update_and_dump()
@@ -74,11 +76,13 @@ class Ui_Login(object):
                         "欢迎：" + global_setting.user_info.nickname(),
                         QtWidgets.QMessageBox.Ok
                     )
-                    Login.main_window.login_update()
+                    Login.main_window.login_update(1)
                     Login.close()
         Login.timerEvent = timerEvent
 
         QtCore.QMetaObject.connectSlotsByName(Login)
+
+        return timer_id
 
     def retranslateUi(self, Login):
         _translate = QtCore.QCoreApplication.translate

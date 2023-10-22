@@ -32,6 +32,10 @@ class LoginState(Enum):
 class UserInfoParser:
     """ 用户信息解释器 """
     def __init__(self, c: Credential | None = None):
+        self.info = None
+        self.update(c)
+
+    def update(self, c: Credential|None = None):
         if c.sessdata is not None:
             try:
                 self.info = sync(user.get_self_info(c))

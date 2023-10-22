@@ -95,7 +95,7 @@ def settings_initial():
         },
         'sys_setting': {
             'what': '系统行为设置',
-            'login': False,
+            'login': True,
             'save_account': False,
             'debug': False,
         }

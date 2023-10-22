@@ -49,13 +49,20 @@ class DanmakuReaderMainWindow(QMainWindow):
     def display(self) -> None:
         self.show()
 
-    def login_update(self) -> None:
+    def login_update(self, state=0) -> None:
         """
 
             更新登录状态
+        :param state: 0-初始化登录 1-登录成功后更新
 
         """
-        if sync(credential.check_cookies(global_setting.credential)):
+        online = sync(credential.check_cookies(global_setting.credential))
+
+        if state == 1:
+            online = True
+
+        if online:
+            global_setting.user_info.update(c=global_setting.credential)
             n = global_setting.user_info.nickname()
             self.ui.welcome.setText(
                 f"<p style=\" font-weight:600; color:#0000ff; text-align:center\">欢迎回来：{n}</p>"
@@ -91,9 +98,7 @@ class DanmakuReaderMainWindow(QMainWindow):
         :param action: 选择的选项
         """
         act_name = action.text()
-        if act_name == "屏蔽词列表":
-            os.system("ban_word.txt")
-        elif act_name == "更新内容":
+        if act_name == "更新内容":
             self.update_window = UpdateContentWindow()
             self.update_window.show()
 
@@ -104,7 +109,7 @@ class DanmakuReaderMainWindow(QMainWindow):
 
         """
         self.login_window = LoginWindow(self)
-        self.login_window.show()
+        self.login_window.display()
 
     @staticmethod
     def reset() -> None:
@@ -241,7 +246,13 @@ class LoginWindow(QWidget):
 
 
     def display(self) -> None:
+        self.main_window.close()
         self.show()
+
+    def close(self) -> bool:
+        self.main_window.display()
+        ret = super().close()
+        return ret
 
     def loginwindow_login(self) -> None:
         """
@@ -264,11 +275,13 @@ class LoginWindow(QWidget):
         elif idx == 1:
             phone = self.ui.nnl.text()
             code = self.ui.pwl.text()
-            sign = login_func.login_by_sms(phone, code)
+            try:
+                sign = login_func.login_by_sms(phone, code)
+            except:
+                sign = login_func.LoginState.fail
 
         if sign == login_func.LoginState.success:
-            self.main_window.display()
-            self.main_window.login_update()
+            self.main_window.login_update(1)
             self.close()
         elif sign is None:
             pass  # raise 登录状态错误
@@ -330,16 +343,17 @@ class QRCodeWindow(QWidget):
         super().__init__()
         self.main_window = main_window
         self.ui = login_qrcode.Ui_Login()
-        self.ui.setupUi(self)
-        self.timerEvent = QWidget.timerEvent
+        self.qrcode_timer_id = self.ui.setupUi(self)
 
     def display(self) -> None:
+        self.qrcode_timer_id = self.startTimer(1000)
         self.show()
 
     def close(self) -> bool:
-        self.timerEvent = QWidget.timerEvent
+        self.killTimer(self.qrcode_timer_id)
         ret = super().close()
         return ret
+
 
 class UpdateContentWindow(QWidget):
     """ ”更新“按钮界面 """
