@@ -7,10 +7,11 @@ block_cipher = None
 a = Analysis(
     ['DanmakuReader.py','dr_window.py','initial.py','iosetting.py','liveget.py','reader.py', 'global_setting.py',
     './ui/danmakureaderwindow.py','./ui/launchwindow.py','./ui/login_qrcode.py','./ui/loginwindow.py',
-    './ui/updatecontent.py','./funcs/file_func.py','./funcs/launch_func.py','./funcs/login_func.py'],
+    './ui/updatecontent.py', './ui/settingswindow.py','./funcs/file_func.py','./funcs/launch_func.py',
+    './funcs/login_func.py'],
     pathex=[],
     binaries=[],
-    datas=[('README.md', '.'),('v1.0-alpha.md','.')],
+    datas=[('README.md', '.'),('v1.1-alpha.md','.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

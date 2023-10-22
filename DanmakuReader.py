@@ -1,10 +1,11 @@
 import sys
-import initial
+
 from PyQt5 import QtWidgets
-from bilibili_api import settings, Credential
+from bilibili_api import settings
+
 import global_setting
+import initial
 from dr_window import DanmakuReaderMainWindow
-from funcs import login_func
 
 
 def sys_init():
@@ -16,6 +17,7 @@ def sys_init():
     initial.initial()
     settings.geetest_auto_open = True
     global_setting.load_setting()
+    global_setting.other_init()
 
 
 if __name__ == '__main__':

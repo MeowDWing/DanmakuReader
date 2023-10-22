@@ -11,19 +11,9 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>狐神！启动！</string>
+   <string>启动</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="reader">
-     <property name="text">
-      <string>读取界面</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QTextBrowser" name="readtext"/>
-   </item>
    <item row="1" column="1">
     <widget class="QTextBrowser" name="recivetext"/>
    </item>
@@ -34,8 +24,68 @@
      </property>
     </widget>
    </item>
+   <item row="1" column="0">
+    <widget class="QTextBrowser" name="readtext"/>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="reader">
+     <property name="text">
+      <string>读取界面</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="volume">
+       <property name="text">
+        <string>音量</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSlider" name="volume_bar">
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="singleStep">
+        <number>1</number>
+       </property>
+       <property name="pageStep">
+        <number>5</number>
+       </property>
+       <property name="value">
+        <number>90</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>volume_bar</sender>
+   <signal>sliderReleased()</signal>
+   <receiver>Launch</receiver>
+   <slot>volume_adjust()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>215</x>
+     <y>514</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>325</x>
+     <y>513</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>volume_adjust()</slot>
+ </slots>
 </ui>

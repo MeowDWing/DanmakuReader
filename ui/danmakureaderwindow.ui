@@ -124,7 +124,6 @@
     <property name="title">
      <string>查看</string>
     </property>
-    <addaction name="banword"/>
     <addaction name="update"/>
    </widget>
    <addaction name="checklist"/>

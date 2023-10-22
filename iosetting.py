@@ -231,12 +231,12 @@ def logging(filename: str, txt: Iterable | str,
         f.writelines(lines)
 
 
-def logging_simple(filename: str, txt: str):
+def logging_simple(filename: str, txt: str) -> None:
     with open(f'./logging/{filename}', mode='a', encoding='utf-8') as f:
         f.write(txt)
 
 
-def set_head(head, prefix=None):
+def set_head(head, prefix=None) -> str:
     if prefix is None:
         return f'[{head}]'
     else:
@@ -266,12 +266,16 @@ def hex2dec_str(str16: str = '#FFFFFF') -> str:
 
 class JsonParser:
     @staticmethod
-    def load(filename) -> dict:
-        with open(filename, mode='r', encoding='utf-8') as f:
-            json2dict = json.load(f)
+    def load(filename) -> dict|None:
+        json2dict = None
+        try:
+            with open(filename, mode='r', encoding='utf-8') as f:
+                json2dict = json.load(f)
+        except FileNotFoundError:
+            print(f'[debug]{filename} not Found')
         return json2dict
 
     @staticmethod
-    def dump(filename, dict2json, mode: str = 'a'):
+    def dump(filename, dict2json, mode: str = 'a') -> None:
         with open(filename, mode=mode, encoding='utf-8') as f:
             json.dump(dict2json, f, indent=4, ensure_ascii=False)

@@ -1,7 +1,8 @@
 import time
 from collections import deque
+
+import global_setting
 import iosetting as ios
-import pyttsx3
 import re
 from ui import launchwindow
 
@@ -24,9 +25,13 @@ class Reader:
         self.force_chasing_40 = 0  # 5
         self.force_reset_limit = 50
 
+        ban_word_set, self.re_ban_str = global_setting.ban_word.ban_list_creator()
         self.ban_word_set = set("1234567890")
-        self.re_ban_str = ''
-        self.ban_word_set_initial()
+        self.ban_word_set.update(ban_word_set)
+        ios.display_details(f'屏蔽词列表{str(self.ban_word_set)}', tag='UP', ui=self.ui)
+        ios.display_details(f"屏蔽匹配词列表{self.re_ban_str.split('|')}", tag='UP', ui=self.ui)
+
+
         self.re_only_some_symbol = re.compile("[^?？.。,，（）()]").search
         self.ui.append(f"<font color=cyan>本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在</font>"
                        "<p style=\"text-align:right;color:cyan\">------保狐派</p>"
@@ -35,31 +40,9 @@ class Reader:
         #                   '\t\t\t------from a certain member of 保狐派', tag='CTRL')
         # ios.print_details('本界面为debug界面，如果程序出现任何异常，请将本界面的错误信息发与作者', tag='TIPS')
 
-        self.player = TxtProcess()
+        self.player = global_setting.narrator
 
-    def ban_word_set_initial(self):
-        try:
-            with open('ban_word.txt', mode='r', encoding='utf-8') as f:
-                lines = f.readlines()
-        except FileNotFoundError:
-            raise FileNotFoundError('文件不存在')
-
-        for line in lines:
-            line = line.strip()
-            if line[0] != '$':
-                if line[0] == '-':
-                    line = line[1:]
-                    self.re_ban_str = self.re_ban_str + line + '|'
-                else:
-                    self.ban_word_set.add(line)
-
-        self.re_ban_str = self.re_ban_str[:-1]
-        if len(self.re_ban_str) == 0:
-            self.re_ban_str = '$没有屏蔽词'
-        ios.display_details(f'屏蔽词列表{str(self.ban_word_set)}', tag='UP', ui=self.ui)
-        ios.display_details(f"屏蔽匹配词列表{self.re_ban_str.split('|')}", tag='UP', ui=self.ui)
-
-    def reader(self):
+    def reader(self) -> None:
         former = ''
         print('[read]wait initial')
         time.sleep(5)
@@ -151,26 +134,10 @@ class Reader:
                 self.danmaku_len = len(self.danmaku_queue)
                 ios.display_details("当前队列以同步", tag="SYSTEM", ui=self.ui)
 
-    def popleft_n(self, n):
+    def popleft_n(self, n) -> None:
         for _ in range(n):
             self.danmaku_queue.popleft()
         self.danmaku_len = len(self.danmaku_queue)
-
-
-class TxtProcess:
-
-    def __init__(self):
-        self.say_engin = pyttsx3.init()
-        self.say_engin.setProperty('rate', 250)
-        self.say_engin.setProperty('volume', 1)
-        voices = self.say_engin.getProperty('voices')
-        self.say_engin.setProperty('voice', voices[0].id)
-
-    def txt2audio(self, message: str):
-        self.say_engin.say(message)
-        self.say_engin.runAndWait()
-        self.say_engin.stop()
-
 
 if __name__ == '__main__':
     pass

@@ -1,15 +1,17 @@
 import json
 import sys
+
 from PyQt5 import QtCore, QtGui, QtWidgets
-from bilibili_api import login_func, user, sync
-from funcs import login_func
+from bilibili_api import user, sync
+from bilibili_api import login_func as api_login_func
+from funcs import login_func, file_func
 
 import global_setting
 
 
 # 二维码登录窗口类
 class Ui_Login(object):
-    def setupUi(self, Login):
+    def setupUi(self, Login) -> int:
         Login.setObjectName("Login")
         Login.setFixedSize(180, 210)
         icon = QtGui.QIcon()
@@ -27,7 +29,7 @@ class Ui_Login(object):
 
         self.retranslateUi(Login)
 
-        qrcode_data = login_func.get_qrcode()
+        qrcode_data = api_login_func.get_qrcode()
         self.pixmap = QtGui.QPixmap()
         self.pixmap.loadFromData(qrcode_data[0].content, qrcode_data[0].imageType)
         self.label_5.setPixmap(self.pixmap)
@@ -37,7 +39,7 @@ class Ui_Login(object):
         self.pushButton_2.setIcon(QtGui.QIcon(QtGui.QPixmap("update.jpg")))
 
         def update_qrcode():
-            qrcode_data = login_func.get_qrcode()
+            qrcode_data = api_login_func.get_qrcode()
             self.label_5.setPixmap(QtGui.QPixmap(qrcode_data[0]))
             self.label_5.setScaledContents(True)
             self.label_5.update()
@@ -45,25 +47,28 @@ class Ui_Login(object):
 
         self.pushButton_2.clicked.connect(update_qrcode)
 
-        Login.startTimer(1000)
+        timer_id:int = Login.startTimer(1000)
         def timerEvent(*args, **kwargs):
             _translate = QtCore.QCoreApplication.translate
             try:
-                events = login_func.check_qrcode_events(self.qrcode_sec)
+                events = api_login_func.check_qrcode_events(self.qrcode_sec)
             except:
                 self.label_2.setText(_translate("Login", "⚫️二维码登录"))
                 return
             else:
                 if events == None: return
-                if events[0] == login_func.QrCodeLoginEvents.SCAN:
+                if events[0] == api_login_func.QrCodeLoginEvents.SCAN:
                     self.label_2.setText(_translate("Login", "🔴二维码登录"))
-                elif events[0] == login_func.QrCodeLoginEvents.CONF:
+                elif events[0] == api_login_func.QrCodeLoginEvents.CONF:
                     self.label_2.setText(_translate("Login", "🟡二维码登录"))
-                elif events[0] == login_func.QrCodeLoginEvents.DONE:
+                elif events[0] == api_login_func.QrCodeLoginEvents.DONE:
                     self.label_2.setText(_translate("Login", "🟢二维码登录"))
                     credential = events[1]
+                    if credential.buvid3 is None:
+                        credential.buvid3 = file_func.InitialParser.get_buvid3()
                     global_setting.credential = credential
                     global_setting.INITIAL.credential_consist(credential)
+                    global_setting.INITIAL.update_and_dump()
                     global_setting.user_info = login_func.UserInfoParser(credential)
                     reply = QtWidgets.QMessageBox.information(
                         Login,
@@ -71,11 +76,13 @@ class Ui_Login(object):
                         "欢迎：" + global_setting.user_info.nickname(),
                         QtWidgets.QMessageBox.Ok
                     )
-                    Login.main_window.login_update()
+                    Login.main_window.login_update(1)
                     Login.close()
         Login.timerEvent = timerEvent
 
         QtCore.QMetaObject.connectSlotsByName(Login)
+
+        return timer_id
 
     def retranslateUi(self, Login):
         _translate = QtCore.QCoreApplication.translate
