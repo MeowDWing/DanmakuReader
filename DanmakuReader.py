@@ -5,6 +5,7 @@ from bilibili_api import settings
 
 import global_setting
 import initial
+from funcs.file_func import redirect_print
 from dr_window import DanmakuReaderMainWindow
 
 
@@ -18,6 +19,7 @@ def sys_init():
     settings.geetest_auto_open = True
     global_setting.load_setting()
     global_setting.other_init()
+    redirect_print()
 
 
 if __name__ == '__main__':

@@ -16,6 +16,7 @@ from bilibili_api import login, settings, exceptions, credential, sync
 import initial
 import global_setting
 import iosetting as ios
+import liveget
 from ui import danmakureaderwindow, updatecontent, login_qrcode, loginwindow, launchwindow, settingswindow
 from funcs import launch_func, file_func, login_func
 
@@ -151,9 +152,12 @@ class LaunchWindow(QWidget):
         super().__init__()
         self.ui = launchwindow.Ui_Launch()
         self.ui.setupUi(self)
+
         self.__global_queue = None
-        self.process_receiver: QtCore.QThread | None = None
-        self.process_reader: QtCore.QThread | None = None
+        self.process_receiver: launch_func.RecThread | None = None
+        self.process_reader: launch_func.RecThread | None = None
+
+        self.ui.lvl_combox.setCurrentText(str(global_setting.settings.min_lvl))
 
         # 窗口样式设置（黑底色， 默认字体， 白色字体）
         self.ui.readtext.setStyleSheet('''
@@ -193,10 +197,38 @@ class LaunchWindow(QWidget):
 
         print("正在初始化阅读器...")
         self.process_reader = launch_func.RdThread(_g_queue=self.__global_queue, _ui=self.ui)
-        print(1)
 
         self.process_reader.start()
         self.process_receiver.start()
+
+    def temp_lvl_limit(self):
+        if isinstance(self.process_receiver, launch_func.RecThread):
+            temp_lvl_str = self.ui.lvl_combox.currentText()
+            if len(temp_lvl_str)<5:
+                temp_lvl = int(temp_lvl_str)
+            else:
+                temp_lvl = -1
+
+            if temp_lvl>0:
+                self.process_receiver.x.min_lvl = temp_lvl
+                self.process_receiver.x.read_any_lvl = False
+            elif temp_lvl==0:
+                self.process_receiver.x.min_lvl = 0
+                self.process_receiver.x.read_any_lvl = True
+
+
+    def pause_read(self):
+        pause = global_setting.read_pause
+
+        if pause:
+            self.ui.pause_btn.setText('暂停')
+            pause = not pause
+        else:
+            self.ui.pause_btn.setText('继续')
+            pause = not pause
+
+        global_setting.read_pause = pause
+
 
     def volume_adjust(self):
 
@@ -246,11 +278,9 @@ class LoginWindow(QWidget):
 
 
     def display(self) -> None:
-        self.main_window.close()
         self.show()
 
     def close(self) -> bool:
-        self.main_window.display()
         ret = super().close()
         return ret
 

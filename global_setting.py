@@ -30,6 +30,17 @@ ban_word: file_func.BanWordParser | None = None  # 屏蔽词文件解释器
 narrator: launch_func.Narrator | None = None
 
 
+""" 操作变量 """
+read_pause = False
+
+""" 进程锁定 """
+thread_locked = False
+
+""" print 重定向; 初始化位于/logging/file_func.py """
+_origin_print = None
+redirect_print = None
+
+
 class FileState(Enum):
     right = 0
     notFound = 1

@@ -3,6 +3,7 @@ import os
 import time
 from collections import deque
 import random
+import logging
 
 import global_setting
 import iosetting as ios
@@ -40,6 +41,7 @@ class LiveInfoGet:
         self.ctrl_name = ctrl_name
 
         self._queue = g_queue
+        self.temp_queue = deque()
 
         self.ui = ui.recivetext
 
@@ -92,6 +94,10 @@ class LiveInfoGet:
             raise UserInfoError("User_id maybe wrong, please check again")
 
         self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
+        file_handler = logging.FileHandler(f'./logging/print_cmd_logging_time-{time.time()}.txt')
+        self.room_event_stream.logger.addHandler(file_handler)
+        if global_setting.settings.debug:
+            self.room_event_stream.logger.setLevel(logging.DEBUG)
 
     def living_on(self):
 
@@ -127,7 +133,15 @@ class LiveInfoGet:
                     if_read = True
 
         if len(danmaku_content) > 0 and (self.read_any_lvl or if_read):
-            self._queue.append(danmaku_content)
+            if not global_setting.thread_locked:
+                global_setting.thread_locked = True
+                if len(self.temp_queue)>0:
+                    self._queue.extend(self.temp_queue)
+                self._queue.append(danmaku_content)
+                global_setting.thread_locked = False
+            else:
+                self.temp_queue.append(danmaku_content)
+
 
         match nickname:
             case self.ctrl_name:

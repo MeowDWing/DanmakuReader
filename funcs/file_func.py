@@ -1,10 +1,19 @@
 import os
 import uuid
+import sys
 
 from bilibili_api.credential import Credential
 
 import global_setting
 import iosetting as ios
+
+
+def redirect_print() -> None:
+    pass
+    # f = open('./logging/print_cmd_logging.txt', mode='a')
+    # global_setting._origin_print = sys.stdout
+    # sys.stdout = f
+    # global_setting.redirect_print = f
 
 
 def file_clearer(path) -> None:
@@ -221,17 +230,19 @@ class BanWordParser:
         :param regex_match_add: 正则匹配词的添加列表
         :return:
         """
-        temp_match = self.all_match
-        temp_match.append(all_match_add)
-        temp_match = set(temp_match)
-        temp_match = list(temp_match)
-        self.all_match = temp_match
+        temp_match_list = self.all_match
+        temp_match_list.extend(all_match_add)
+        temp_match_tuple = tuple(temp_match_list)
+        temp_match_set = set(temp_match_tuple)
+        temp_match_list = list(temp_match_set)
+        self.all_match = temp_match_list
 
-        temp_match = self.regex_match
-        temp_match.append(regex_match_add)
-        temp_match = set(temp_match)
-        temp_match = list(temp_match)
-        self.regex_match = temp_match
+        temp_match_list = self.regex_match
+        temp_match_list.extend(regex_match_add)
+        temp_match_tuple = tuple(temp_match_list)
+        temp_match_set = set(temp_match_tuple)
+        temp_match_list = list(temp_match_set)
+        self.regex_match = temp_match_list
 
         self.ban_word_dict['all_match'] = self.all_match
         self.ban_word_dict['regex_match'] = self.regex_match

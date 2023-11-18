@@ -16,9 +16,11 @@ class RecThread(QThread):
         self._g_queue = _g_queue
         self._ui = _ui
 
+        self.x = None
+
     def run(self):
-        x = lg.LiveInfoGet(g_queue=self._g_queue, ui=self._ui)
-        x.living_on()
+        self.x = lg.LiveInfoGet(g_queue=self._g_queue, ui=self._ui)
+        self.x.living_on()
 
 
 class RdThread(QThread):
@@ -29,10 +31,11 @@ class RdThread(QThread):
         super().__init__()
         self._g_queue = _g_queue
         self._ui = _ui
+        self.read = None
 
     def run(self):
-        read = rd.Reader(self._g_queue, ui=self._ui)
-        read.reader()
+        self.read = rd.Reader(self._g_queue, ui=self._ui)
+        self.read.reader()
 
 
 class Narrator:

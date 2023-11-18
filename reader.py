@@ -44,7 +44,6 @@ class Reader:
 
     def reader(self) -> None:
         former = ''
-        print('[read]wait initial')
         time.sleep(5)
         while True:
 
@@ -53,7 +52,10 @@ class Reader:
 
             # 队列加入与预处理机制
             if self.danmaku_len < 50:
+                if not global_setting.thread_locked:
+                    global_setting.thread_locked = True
                 while len(self._queue) > 0:
+                    global_setting.thread_locked = True
                     c: str = self._queue.popleft()
                     c = c.strip()
                     re_flag = re.search(self.re_ban_str, c)
@@ -67,6 +69,13 @@ class Reader:
                                                     special_color=ios.HeadSet.system.value, ui=self.ui)
                     else:
                         ios.display_details(f'屏蔽{c}由于其中含有{re_flag.group()}', special_color="Gray", ui=self.ui)
+
+                if global_setting.read_pause:
+                    self._queue.clear()
+                    self.danmaku_queue.clear()
+                    self.danmaku_len = 0
+
+                global_setting.thread_locked = False
 
             # 追赶机制
             if self.danmaku_len > self.force_reset_limit:
@@ -132,7 +141,7 @@ class Reader:
 
             if int(time.time()) % 100 == 0:
                 self.danmaku_len = len(self.danmaku_queue)
-                ios.display_details("当前队列以同步", tag="SYSTEM", ui=self.ui)
+                ios.display_details("当前队列已同步", tag="SYSTEM", ui=self.ui)
 
     def popleft_n(self, n) -> None:
         for _ in range(n):

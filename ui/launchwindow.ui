@@ -62,6 +62,94 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QLabel" name="lvl_label">
+       <property name="text">
+        <string>读取最低等级</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="lvl_combox">
+       <item>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>2</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>3</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>4</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>5</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>6</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>7</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>9</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>10</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>15</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>20</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>21</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pause_btn">
+       <property name="text">
+        <string>暂停</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>
@@ -79,13 +167,47 @@
      <y>514</y>
     </hint>
     <hint type="destinationlabel">
-     <x>325</x>
+     <x>230</x>
      <y>513</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pause_btn</sender>
+   <signal>clicked()</signal>
+   <receiver>Launch</receiver>
+   <slot>pause_read()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>540</x>
+     <y>518</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>528</x>
+     <y>459</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lvl_combox</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>Launch</receiver>
+   <slot>temp_lvl_limit()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>456</x>
+     <y>516</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>405</x>
+     <y>438</y>
     </hint>
    </hints>
   </connection>
  </connections>
  <slots>
   <slot>volume_adjust()</slot>
+  <slot>pause_read()</slot>
+  <slot>temp_lvl_limit()</slot>
  </slots>
 </ui>
