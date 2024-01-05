@@ -38,6 +38,7 @@ class HeadSet(Enum):
     captain_buy_3 = "DeepSkyBlue"
     captain_buy_2 = "DodgerBlue"
     captain_buy_1 = "RoyalBlue"
+    normal = 'Gray'
     tips = "DarkCyan"
     error = "Red"
     warning = "Yellow"
@@ -57,6 +58,7 @@ _iosetting__head = {
     'CTRL': HeadSet.ctrl.value,
     'ERROR': HeadSet.error.value,
     'FANS': HeadSet.fans.value,
+    'NORMAL': HeadSet.normal.value,
     'SYSTEM': HeadSet.system.value,  # Red bright
     'SUCCESS': HeadSet.success.value,  # Green bottom
     'UP': HeadSet.up.value,  # Green bright

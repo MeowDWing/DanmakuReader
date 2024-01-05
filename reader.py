@@ -33,8 +33,7 @@ class Reader:
 
 
         self.re_only_some_symbol = re.compile("[^?？.。,，（）()]").search
-        self.ui.append(f"<font color=cyan>本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在</font>"
-                       "<p style=\"text-align:right;color:cyan\">------保狐派</p>"
+        self.ui.append(f"<font color=cyan>本项目基于bilibili_api， 如有任何需要，请联系作者</font>"
                        "<p></p>")
         # ios.print_details('本项目基于bilibili_api， 如有任何需要，请联系作者，与狐宝同在\n'
         #                   '\t\t\t------from a certain member of 保狐派', tag='CTRL')
@@ -54,28 +53,29 @@ class Reader:
             if self.danmaku_len < 50:
                 if not global_setting.thread_locked:
                     global_setting.thread_locked = True
-                while len(self._queue) > 0:
-                    global_setting.thread_locked = True
-                    c: str = self._queue.popleft()
-                    c = c.strip()
-                    re_flag = re.search(self.re_ban_str, c)
 
-                    if re_flag is None:
-                        if c not in self.ban_word_set:
-                            if self.re_only_some_symbol(c):
-                                self.danmaku_queue.append(c)
-                                self.danmaku_len += 1
-                                ios.display_details(f'{c}:加入了待读队列', tag='SPECIAL', head='QUEUE',
-                                                    special_color=ios.HeadSet.system.value, ui=self.ui)
-                    else:
-                        ios.display_details(f'屏蔽{c}由于其中含有{re_flag.group()}', special_color="Gray", ui=self.ui)
+                    while len(self._queue) > 0:
+                        global_setting.thread_locked = True
+                        c: str = self._queue.popleft()
+                        c = c.strip()
+                        re_flag = re.search(self.re_ban_str, c)
 
-                if global_setting.read_pause:
-                    self._queue.clear()
-                    self.danmaku_queue.clear()
-                    self.danmaku_len = 0
+                        if re_flag is None:
+                            if c not in self.ban_word_set:
+                                if self.re_only_some_symbol(c):
+                                    self.danmaku_queue.append(c)
+                                    self.danmaku_len += 1
+                                    ios.display_details(f'{c}:加入了待读队列', tag='SPECIAL', head='QUEUE',
+                                                        special_color=ios.HeadSet.system.value, ui=self.ui)
+                        else:
+                            ios.display_details(f'屏蔽{c}由于其中含有{re_flag.group()}', special_color="Gray", ui=self.ui)
 
-                global_setting.thread_locked = False
+                    if global_setting.read_pause:
+                        self._queue.clear()
+                        self.danmaku_queue.clear()
+                        self.danmaku_len = 0
+
+                    global_setting.thread_locked = False
 
             # 追赶机制
             if self.danmaku_len > self.force_reset_limit:
