@@ -158,7 +158,7 @@
  <connections>
   <connection>
    <sender>volume_bar</sender>
-   <signal>sliderReleased()</signal>
+   <signal>valueChanged(int)</signal>
    <receiver>Launch</receiver>
    <slot>volume_adjust()</slot>
    <hints>
@@ -195,8 +195,8 @@
    <slot>temp_lvl_limit()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>456</x>
-     <y>516</y>
+     <x>501</x>
+     <y>522</y>
     </hint>
     <hint type="destinationlabel">
      <x>405</x>
