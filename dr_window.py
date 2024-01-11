@@ -161,26 +161,62 @@ class LaunchWindow(QWidget):
             }
         ''')
 
-        self.ui.volume_bar.setValue(int(global_setting.volume_ctrl.now_volume()*100))
-        a = self.ui.volume_bar.pos()
-        print(a.x(),a.y())
-        self.ui.volume_bar.mousePressEvent = self.slider_click_event
+        # 音量调节部分初始化
+        '''
+            音量滑块文档：
+                按下 - 记录位置，按下标记
+                移动 - 如果已按下，则操作
+                释放 - 清除按下标记
+            简写：
+                n -> normalize
+                p -> pos -> position
+                x, y, w, h -> x, y, width, height
+        '''
+        # - 初始值设置
+        self.volume_bar = self.ui.volume_bar
+        self.volume_bar.setValue(int(global_setting.volume_ctrl.now_volume()*100))
+        # - 事件捕获
+        self.volume_bar.mousePressEvent = self.slider_mouse_press_event
+        self.volume_bar.mouseReleaseEvent = self.slider_mouse_realise_event
+        self.volume_bar.mouseMoveEvent = self.slider_mouse_move_event
+        # - 事件变量整理
+        self.volume_bar_pressed = False
 
-    def slider_click_event(self, a0: QtGui.QMouseEvent) -> None:
-        # super(QtWidgets.QSlider,self.ui.volume_bar).mousePressEvent(a0)
-        x, y, w, h = self.ui.volume_bar.geometry().getRect()
-        # now = self.ui.volume_bar.value()
-        # nowx = int((now/100)*w)
+
+    '''  ------ 音量调节函数部分 起始 -------- '''
+    def slider_mouse_press_event(self, a0: QtGui.QMouseEvent) -> None:
+
+        self.volume_bar_pressed = True
+
+    def slider_mouse_realise_event(self, a0: QtGui.QMouseEvent) -> None:
+
+        self.volume_bar_pressed = False
+        w = self.volume_bar.width()
         p = a0.pos()
         px = p.x()
-        # if (nowx-40) < px < (nowx+40):
-        #     while True:
-        #         a0.
-        # else:
-        px = int((px/w)*100)
-        self.ui.volume_bar.setValue(px)
-        global_setting.volume_ctrl.set_volume(px)
 
+        now_x = int((self.volume_bar.value()/100)*w)
+
+        if (now_x - 40) < px < (now_x + 40):
+            pass
+        else:
+            px = int((px / w) * 100)
+            self.volume_bar.setValue(px)
+            global_setting.volume_ctrl.set_volume(px)
+
+
+    def slider_mouse_move_event(self, a0: QtGui.QMouseEvent) -> None:
+        if self.volume_bar_pressed is True:
+            w = self.volume_bar.width()
+            p = a0.pos()
+            px = p.x()
+            npx = int((px/w)*100)
+            self.volume_bar.setValue(npx)
+            global_setting.volume_ctrl.set_volume(npx)
+        else:
+            pass
+
+    '''  ------ 音量调节函数部分 结束 -------- '''
 
     def display(self) -> None:
         """
@@ -229,14 +265,6 @@ class LaunchWindow(QWidget):
             pause = not pause
 
         global_setting.read_pause = pause
-
-
-    def volume_adjust(self):
-
-        vol = self.ui.volume_bar.value()
-        a,b,c,d = self.ui.volume_bar.geometry().getRect()
-        print(a,b,c,d)
-        global_setting.volume_ctrl.set_volume(vol)
 
     def join2txt_browser(self, which, txt) -> None:
         pass
