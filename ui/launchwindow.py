@@ -68,7 +68,6 @@ class Ui_Launch(object):
         self.gridLayout.addLayout(self.horizontalLayout, 2, 0, 1, 2)
 
         self.retranslateUi(Launch)
-        self.volume_bar.sliderReleased.connect(Launch.volume_adjust) # type: ignore
         self.pause_btn.clicked.connect(Launch.pause_read) # type: ignore
         self.lvl_combox.currentIndexChanged['int'].connect(Launch.temp_lvl_limit) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Launch)

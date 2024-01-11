@@ -157,22 +157,6 @@
  <resources/>
  <connections>
   <connection>
-   <sender>volume_bar</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>Launch</receiver>
-   <slot>volume_adjust()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>215</x>
-     <y>514</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>230</x>
-     <y>513</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>pause_btn</sender>
    <signal>clicked()</signal>
    <receiver>Launch</receiver>
