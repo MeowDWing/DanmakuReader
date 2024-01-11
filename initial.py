@@ -31,6 +31,9 @@ def _initial():
     with open('./files/INITIAL', mode='x'):
         pass
 
+    with open('./files/temp',mode='x'):
+        pass
+
     INITIAL_initial()
 
     try:

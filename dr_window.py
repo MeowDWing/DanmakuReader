@@ -43,8 +43,18 @@ class DanmakuReaderMainWindow(QMainWindow):
         self.launch_window = None
         self.settings_window = None
 
+        # 更新内容弹出
+        self.update_auto_show = False
+        if os.path.exists('./files/temp'):
+            self.update_auto_show = True
+            os.remove('./files/temp')
+
     def display(self) -> None:
         self.show()
+        if self.update_auto_show:
+            self.update_window = UpdateContentWindow()
+            self.update_window.show()
+
 
     def login_update(self, state=0) -> None:
         """
