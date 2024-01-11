@@ -98,6 +98,10 @@ def settings_initial():
             'login': True,
             'save_account': False,
             'debug': False,
+        },
+        'running': {
+            'what': '运行中属性',
+            'volume': 90,
         }
     }
 

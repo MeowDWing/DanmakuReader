@@ -8,17 +8,16 @@ import os
 from collections import deque
 
 import bilibili_api
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import QMainWindow, QWidget, QMessageBox
 
-from bilibili_api import login, settings, exceptions, credential, sync
+from bilibili_api import credential, sync
 
 import initial
 import global_setting
 import iosetting as ios
 from ui import danmakureaderwindow, updatecontent, login_qrcode, loginwindow, launchwindow, settingswindow
 from funcs import launch_func, file_func, login_func
-from funcs.launch_func import WidgetLoc
 
 class DanmakuReaderMainWindow(QMainWindow):
     """
@@ -143,24 +142,6 @@ class LaunchWindow(QWidget):
 
         self.ui.lvl_combox.setCurrentText(str(global_setting.settings.min_lvl))
 
-        # 窗口样式设置（黑底色， 默认字体， 白色字体）
-        self.ui.readtext.setStyleSheet('''
-            QTextBrowser 
-            {
-                color: white;
-                background: black;
-                font-family:system-ui,-apple-system,BlinkMacSystemFont,segoe ui,Roboto,Helvetica,Arial,sans-serif,apple color emoji,segoe ui emoji,segoe ui symbol;
-            }
-        ''')
-        self.ui.recivetext.setStyleSheet('''
-            QTextBrowser 
-            {
-                color: white;
-                background: black;
-                font-family:system-ui,-apple-system,BlinkMacSystemFont,segoe ui,Roboto,Helvetica,Arial,sans-serif,apple color emoji,segoe ui emoji,segoe ui symbol;
-            }
-        ''')
-
         # 音量调节部分初始化
         '''
             音量滑块文档：
@@ -174,7 +155,7 @@ class LaunchWindow(QWidget):
         '''
         # - 初始值设置
         self.volume_bar = self.ui.volume_bar
-        self.volume_bar.setValue(int(global_setting.volume_ctrl.now_volume()*100))
+        self.volume_bar.setValue(int(global_setting.settings.vol))
         # - 事件捕获
         self.volume_bar.mousePressEvent = self.slider_mouse_press_event
         self.volume_bar.mouseReleaseEvent = self.slider_mouse_realise_event
@@ -225,12 +206,21 @@ class LaunchWindow(QWidget):
         self.show()
         self.init_reader_and_receiver()
 
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        s_vol = global_setting.settings.vol
+        now_vol = self.volume_bar.value()
+        if s_vol != now_vol:
+            run_dict = global_setting.settings.run_dict_constructor(vol=now_vol)
+            global_setting.settings.update_conform_and_dump(run_dict=run_dict)
+
+        super().closeEvent(a0)
+
     def init_reader_and_receiver(self) -> None:
         self.__global_queue = deque()
         print('正在读取房间号...')
 
         print('正在初始化弹幕获取器...')
-        self.process_receiver = launch_func.RecThread(_g_queue=self.__global_queue, _ui=self.ui)
+        self.process_receiver = launch_func.RecThread(_g_queue=self.__global_queue)
 
         print("正在初始化阅读器...")
         self.process_reader = launch_func.RdThread(_g_queue=self.__global_queue, _ui=self.ui)
@@ -277,7 +267,7 @@ class LaunchWindow(QWidget):
         self.startTimer(100)
 
     def timerEvent(self, a0) -> None:
-        self.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+        pass
 
 
 class LoginWindow(QWidget):
@@ -306,6 +296,11 @@ class LoginWindow(QWidget):
 
     def display(self) -> None:
         self.show()
+        self.main_window.hide()
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.main_window.display()
+        super().closeEvent(a0)
 
     def close(self) -> bool:
         ret = super().close()
@@ -403,10 +398,9 @@ class QRCodeWindow(QWidget):
         self.qrcode_timer_id = self.startTimer(1000)
         self.show()
 
-    def close(self) -> bool:
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.killTimer(self.qrcode_timer_id)
-        ret = super().close()
-        return ret
+        super().closeEvent(a0)
 
 
 class UpdateContentWindow(QWidget):
@@ -503,15 +497,12 @@ class SettingsWindow(QWidget):
             for line in lines:
                 line = line.strip()
                 if line[0] == '-':
-                    regex_match.append(line)
+                    regex_match.append(line[1:])
                 elif line[0] == '$':
                     pass
                 else:
                     all_match.append(line)
             global_setting.ban_word.word_conform_update_and_dump(all_match_add=all_match, regex_match_add=regex_match)
-
-
-
 
         self.close()
 

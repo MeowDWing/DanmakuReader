@@ -14,7 +14,7 @@ from funcs import file_func, login_func, launch_func
 
 
 # 版本控制
-version = 'v1.1-alpha'
+version = 'v1.2-alpha'
 proj_name = 'Danmaku Reader'
 
 

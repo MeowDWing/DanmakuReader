@@ -4,33 +4,24 @@ from PyQt5.QtCore import QThread
 from pycaw.pycaw import AudioUtilities
 import pyttsx3
 
-
 from ui import launchwindow
 
 import liveget as lg
 import reader as rd
 
 
-class WidgetLoc:
-    def __init__(self, l, w):
-
-        self.l = l
-        self.w = w
-
-
 class RecThread(QThread):
     """
         接收线程
     """
-    def __init__(self, _g_queue: deque, _ui: launchwindow.Ui_Launch):
+    def __init__(self, _g_queue: deque):
         super().__init__()
         self._g_queue = _g_queue
-        self._ui = _ui
 
         self.x = None
 
     def run(self):
-        self.x = lg.LiveInfoGet(g_queue=self._g_queue, ui=self._ui)
+        self.x = lg.LiveInfoGet(g_queue=self._g_queue)
         self.x.living_on()
 
 
@@ -38,14 +29,14 @@ class RdThread(QThread):
     """
         读线程
     """
-    def __init__(self, _g_queue: deque, _ui: launchwindow.Ui_Launch):
+    def __init__(self, _g_queue: deque, _ui: launchwindow):
         super().__init__()
         self._g_queue = _g_queue
-        self._ui = _ui
         self.read = None
+        self.ui = _ui
 
     def run(self):
-        self.read = rd.Reader(self._g_queue, ui=self._ui)
+        self.read = rd.Reader(self._g_queue, self.ui)
         self.read.reader()
 
 
@@ -97,5 +88,5 @@ class VolumeCtrl:
         return self.interface.GetMasterVolume()
 
     def set_volume(self, vol: int):
-        norm_vol = max(0.0, min(1.0, vol / 100))
+        norm_vol = max(0.0, min(1.0, vol / 100.0))
         self.interface.SetMasterVolume(norm_vol, None)

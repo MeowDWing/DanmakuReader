@@ -1,5 +1,9 @@
+"""
 
-import os
+    弹幕的接收部分，由于界面里显示部分删了，所以很多变量已经没有实际用处了
+    不过考虑到之后会做新的弹幕界面，所以先保留着，据作者毫无根据的想象，这些应该占不了多少性能
+
+"""
 import time
 from collections import deque
 import random
@@ -8,8 +12,6 @@ import logging
 import global_setting
 import iosetting as ios
 from bilibili_api import live, sync, credential
-from ui import launchwindow
-from funcs import login_func
 
 
 # Exception Zone
@@ -24,7 +26,7 @@ class UserInfoError(Exception):
 
 class LiveInfoGet:
 
-    def __init__(self, g_queue: deque, ui: launchwindow.Ui_Launch,
+    def __init__(self, g_queue: deque,
                  up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼',
                  ):
         """
@@ -41,9 +43,6 @@ class LiveInfoGet:
         self.ctrl_name = ctrl_name
 
         self._queue = g_queue
-        self.temp_queue = deque()
-
-        self.ui = ui.recivetext
 
         # 设置信息获取区 settings initial zone
         self.room_id = global_setting.settings.rid
@@ -67,15 +66,16 @@ class LiveInfoGet:
 
             if sessdata is None and bili_jct is None and buvid3 is None and ac_time_value is None:
                 self.credentials = credential.Credential()
-                ios.display_details('请检查INITIAL文件确保登录信息正确', tag='WARNING', ui=self.ui)
+                # ios.display_details('请检查INITIAL文件确保登录信息正确', tag='WARNING', ui=self.ui)
             elif sessdata is None and buvid3 is None:
                 self.credentials = credential.Credential()
-                ios.display_details('关键信息配置有误，请检查sessdata和buvid3信息是否已配置', tag='WARNING', ui=self.ui)
+                # ios.display_details('关键信息配置有误，请检查sessdata和buvid3信息是否已配置', tag='WARNING', ui=self.ui)
 
             # cookie 刷新与自动登录区 cookie refresh and login Zone
             need_login = not sync(self.credentials.check_valid())
             if need_login:
-                ios.display_simple('登录cookie需要更新，如需登录请重启程序并登录', base='WARNING', ui=self.ui)
+                pass
+                # ios.display_simple('登录cookie需要更新，如需登录请重启程序并登录', base='WARNING', ui=self.ui)
 
         else:  # if offline
             self.credentials = None
@@ -106,7 +106,6 @@ class LiveInfoGet:
             if self.debug_flag:
                 ios.logging_simple(filename='./logging.txt', txt='danmaku'+str(random.randint(0, 50000))+'='+str(event))
             self.danmaku_processing(event)
-        ios.display_details('弹幕开启', tag='SYSTEM', ui=self.ui)
 
         sync(self.room_event_stream.connect())
 
@@ -133,15 +132,7 @@ class LiveInfoGet:
                     if_read = True
 
         if len(danmaku_content) > 0 and (self.read_any_lvl or if_read):
-            if not global_setting.thread_locked:
-                global_setting.thread_locked = True
-                if len(self.temp_queue)>0:
-                    self._queue.extend(self.temp_queue)
                 self._queue.append(danmaku_content)
-                global_setting.thread_locked = False
-            else:
-                self.temp_queue.append(danmaku_content)
-
 
         match nickname:
             case self.ctrl_name:
@@ -152,4 +143,4 @@ class LiveInfoGet:
         # 方案
         # [lvl|nickname]says
         # display_content = ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}")
-        ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}", tag=print_flag, ui=self.ui)
+        # ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}", tag=print_flag, ui=self.ui)
