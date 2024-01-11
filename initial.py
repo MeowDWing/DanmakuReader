@@ -31,6 +31,9 @@ def _initial():
     with open('./files/INITIAL', mode='x'):
         pass
 
+    with open('./files/temp',mode='x'):
+        pass
+
     INITIAL_initial()
 
     try:
@@ -98,6 +101,10 @@ def settings_initial():
             'login': True,
             'save_account': False,
             'debug': False,
+        },
+        'running': {
+            'what': '运行中属性',
+            'volume': 90,
         }
     }
 

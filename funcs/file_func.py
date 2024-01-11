@@ -1,10 +1,19 @@
 import os
 import uuid
+import sys
 
 from bilibili_api.credential import Credential
 
 import global_setting
 import iosetting as ios
+
+
+def redirect_print() -> None:
+    pass
+    # f = open('./logging/print_cmd_logging.txt', mode='a')
+    # global_setting._origin_print = sys.stdout
+    # sys.stdout = f
+    # global_setting.redirect_print = f
 
 
 def file_clearer(path) -> None:
@@ -116,7 +125,10 @@ class SettingsParser:
         self.save_account = self.sys['save_account']
         self.debug = self.sys['debug']
 
-    def to_update(self, basic_dict=None, sys_dict=None):
+        self.running = self.settings['running']
+        self.vol = self.running['volume']
+
+    def to_update(self, basic_dict=None, sys_dict=None, run_dict=None):
         if basic_dict is not None:
             self.delete_key_is_null(basic_dict)
             self.basic.update(basic_dict)
@@ -124,6 +136,10 @@ class SettingsParser:
         if sys_dict is not None:
             self.delete_key_is_null(sys_dict)
             self.sys.update(sys_dict)
+
+        if run_dict is not None:
+            self.delete_key_is_null(run_dict)
+            self.running.update(run_dict)
 
     def to_conform(self):
         self.basic = self.settings['basic_setting']
@@ -135,16 +151,20 @@ class SettingsParser:
         self.save_account = self.sys['save_account']
         self.debug = self.sys['debug']
 
+        self.running = self.settings['running']
+        self.vol = self.running['volume']
+
     def dump(self):
         d = {
             'basic_setting': self.basic,
-            'sys_setting': self.sys
+            'sys_setting': self.sys,
+            'running': self.running,
         }
         self.settings.update(d)
         ios.JsonParser.dump('./files/settings.txt', self.settings, mode='w')
 
-    def update_conform_and_dump(self, basic_dict=None, sys_dict=None):
-        self.to_update(basic_dict=basic_dict, sys_dict=sys_dict)
+    def update_conform_and_dump(self, basic_dict=None, sys_dict=None, run_dict=None):
+        self.to_update(basic_dict=basic_dict, sys_dict=sys_dict, run_dict=run_dict)
         self.to_conform()
         self.dump()
 
@@ -174,6 +194,14 @@ class SettingsParser:
             'login': login,
             'save_account': save_account,
             'debug': debug,
+        }
+
+    @staticmethod
+    def run_dict_constructor(vol: str|int|None = None):
+        if vol is None:
+            vol = 90
+        return {
+            'volume': int(vol),
         }
 
     @staticmethod
@@ -221,17 +249,19 @@ class BanWordParser:
         :param regex_match_add: 正则匹配词的添加列表
         :return:
         """
-        temp_match = self.all_match
-        temp_match.append(all_match_add)
-        temp_match = set(temp_match)
-        temp_match = list(temp_match)
-        self.all_match = temp_match
+        temp_match_list = []
+        temp_match_list.extend(all_match_add)
+        temp_match_tuple = tuple(temp_match_list)
+        temp_match_set = set(temp_match_tuple)
+        temp_match_list = list(temp_match_set)
+        self.all_match = temp_match_list
 
-        temp_match = self.regex_match
-        temp_match.append(regex_match_add)
-        temp_match = set(temp_match)
-        temp_match = list(temp_match)
-        self.regex_match = temp_match
+        temp_match_list = []
+        temp_match_list.extend(regex_match_add)
+        temp_match_tuple = tuple(temp_match_list)
+        temp_match_set = set(temp_match_tuple)
+        temp_match_list = list(temp_match_set)
+        self.regex_match = temp_match_list
 
         self.ban_word_dict['all_match'] = self.all_match
         self.ban_word_dict['regex_match'] = self.regex_match

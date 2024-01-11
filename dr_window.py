@@ -8,10 +8,10 @@ import os
 from collections import deque
 
 import bilibili_api
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import QMainWindow, QWidget, QMessageBox
 
-from bilibili_api import login, settings, exceptions, credential, sync
+from bilibili_api import credential, sync
 
 import initial
 import global_setting
@@ -19,12 +19,9 @@ import iosetting as ios
 from ui import danmakureaderwindow, updatecontent, login_qrcode, loginwindow, launchwindow, settingswindow
 from funcs import launch_func, file_func, login_func
 
-
 class DanmakuReaderMainWindow(QMainWindow):
     """
-
         主窗口
-
     """
     def __init__(self):
         super().__init__()
@@ -46,15 +43,23 @@ class DanmakuReaderMainWindow(QMainWindow):
         self.launch_window = None
         self.settings_window = None
 
+        # 更新内容弹出
+        self.update_auto_show = False
+        if os.path.exists('./files/temp'):
+            self.update_auto_show = True
+            os.remove('./files/temp')
+
     def display(self) -> None:
         self.show()
+        if self.update_auto_show:
+            self.update_window = UpdateContentWindow()
+            self.update_window.show()
+
 
     def login_update(self, state=0) -> None:
         """
-
             更新登录状态
         :param state: 0-初始化登录 1-登录成功后更新
-
         """
         online = sync(credential.check_cookies(global_setting.credential))
 
@@ -74,9 +79,7 @@ class DanmakuReaderMainWindow(QMainWindow):
 
     def launch(self) -> None:
         """
-
             启动（名词）窗口
-
         """
         self.launch_window = LaunchWindow()
         self.launch_window.display()
@@ -84,9 +87,7 @@ class DanmakuReaderMainWindow(QMainWindow):
 
     def settings(self) -> None:
         """
-
             设置窗口
-
         """
         self.settings_window = SettingsWindow()
         self.settings_window.display()
@@ -94,7 +95,6 @@ class DanmakuReaderMainWindow(QMainWindow):
     def check(self, action: QtWidgets.QAction) -> None:
         """
             查看操作
-
         :param action: 选择的选项
         """
         act_name = action.text()
@@ -104,9 +104,7 @@ class DanmakuReaderMainWindow(QMainWindow):
 
     def login(self) -> None:
         """
-
             登录窗口
-
         """
         self.login_window = LoginWindow(self)
         self.login_window.display()
@@ -114,9 +112,7 @@ class DanmakuReaderMainWindow(QMainWindow):
     @staticmethod
     def reset() -> None:
         """
-
             重置选项
-
         """
 
         # 确认框
@@ -143,87 +139,150 @@ class DanmakuReaderMainWindow(QMainWindow):
 
 class LaunchWindow(QWidget):
     """
-
         启动窗口
-
     """
     def __init__(self) -> None:
         super().__init__()
         self.ui = launchwindow.Ui_Launch()
         self.ui.setupUi(self)
+
         self.__global_queue = None
-        self.process_receiver: QtCore.QThread | None = None
-        self.process_reader: QtCore.QThread | None = None
+        self.process_receiver: launch_func.RecThread | None = None
+        self.process_reader: launch_func.RecThread | None = None
 
-        # 窗口样式设置（黑底色， 默认字体， 白色字体）
-        self.ui.readtext.setStyleSheet('''
-            QTextBrowser 
-            {
-                color: white;
-                background: black;
-                font-family:system-ui,-apple-system,BlinkMacSystemFont,segoe ui,Roboto,Helvetica,Arial,sans-serif,apple color emoji,segoe ui emoji,segoe ui symbol;
-            }
-        ''')
-        self.ui.recivetext.setStyleSheet('''
-            QTextBrowser 
-            {
-                color: white;
-                background: black;
-                font-family:system-ui,-apple-system,BlinkMacSystemFont,segoe ui,Roboto,Helvetica,Arial,sans-serif,apple color emoji,segoe ui emoji,segoe ui symbol;
-            }
-        ''')
+        self.ui.lvl_combox.setCurrentText(str(global_setting.settings.min_lvl))
 
-        self.ui.volume_bar.setValue(90)
+        # 音量调节部分初始化
+        '''
+            音量滑块文档：
+                按下 - 记录位置，按下标记
+                移动 - 如果已按下，则操作
+                释放 - 清除按下标记
+            简写：
+                n -> normalize
+                p -> pos -> position
+                x, y, w, h -> x, y, width, height
+        '''
+        # - 初始值设置
+        self.volume_bar = self.ui.volume_bar
+        self.volume_bar.setValue(int(global_setting.settings.vol))
+        # - 事件捕获
+        self.volume_bar.mousePressEvent = self.slider_mouse_press_event
+        self.volume_bar.mouseReleaseEvent = self.slider_mouse_realise_event
+        self.volume_bar.mouseMoveEvent = self.slider_mouse_move_event
+        # - 事件变量整理
+        self.volume_bar_pressed = False
+
+
+    '''  ------ 音量调节函数部分 起始 -------- '''
+    def slider_mouse_press_event(self, a0: QtGui.QMouseEvent) -> None:
+
+        self.volume_bar_pressed = True
+
+    def slider_mouse_realise_event(self, a0: QtGui.QMouseEvent) -> None:
+
+        self.volume_bar_pressed = False
+        w = self.volume_bar.width()
+        p = a0.pos()
+        px = p.x()
+
+        now_x = int((self.volume_bar.value()/100)*w)
+
+        if (now_x - 40) < px < (now_x + 40):
+            pass
+        else:
+            px = int((px / w) * 100)
+            self.volume_bar.setValue(px)
+            global_setting.volume_ctrl.set_volume(px)
+
+
+    def slider_mouse_move_event(self, a0: QtGui.QMouseEvent) -> None:
+        if self.volume_bar_pressed is True:
+            w = self.volume_bar.width()
+            p = a0.pos()
+            px = p.x()
+            npx = int((px/w)*100)
+            self.volume_bar.setValue(npx)
+            global_setting.volume_ctrl.set_volume(npx)
+        else:
+            pass
+
+    '''  ------ 音量调节函数部分 结束 -------- '''
 
     def display(self) -> None:
         """
-
             显示界面，并初始化接受机制和读取机制
-
         """
         self.show()
         self.init_reader_and_receiver()
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        s_vol = global_setting.settings.vol
+        now_vol = self.volume_bar.value()
+        if s_vol != now_vol:
+            run_dict = global_setting.settings.run_dict_constructor(vol=now_vol)
+            global_setting.settings.update_conform_and_dump(run_dict=run_dict)
+
+        super().closeEvent(a0)
 
     def init_reader_and_receiver(self) -> None:
         self.__global_queue = deque()
         print('正在读取房间号...')
 
         print('正在初始化弹幕获取器...')
-        self.process_receiver = launch_func.RecThread(_g_queue=self.__global_queue, _ui=self.ui)
+        self.process_receiver = launch_func.RecThread(_g_queue=self.__global_queue)
 
         print("正在初始化阅读器...")
         self.process_reader = launch_func.RdThread(_g_queue=self.__global_queue, _ui=self.ui)
-        print(1)
 
         self.process_reader.start()
         self.process_receiver.start()
 
-    def volume_adjust(self):
+    def temp_lvl_limit(self):
+        if isinstance(self.process_receiver, launch_func.RecThread):
+            temp_lvl_str = self.ui.lvl_combox.currentText()
+            if len(temp_lvl_str)<5:
+                temp_lvl = int(temp_lvl_str)
+            else:
+                temp_lvl = -1
 
-        vol = self.ui.volume_bar.value()
-        norm_vol = vol/100.0
-        global_setting.narrator.say_engin.setProperty('volume', norm_vol)
+            if temp_lvl>0:
+                self.process_receiver.x.min_lvl = temp_lvl
+                self.process_receiver.x.read_any_lvl = False
+            elif temp_lvl==0:
+                self.process_receiver.x.min_lvl = 0
+                self.process_receiver.x.read_any_lvl = True
+
+
+    def pause_read(self):
+        pause = global_setting.read_pause
+
+        if pause:
+            self.ui.pause_btn.setText('暂停')
+            pause = not pause
+        else:
+            self.ui.pause_btn.setText('继续')
+            pause = not pause
+
+        global_setting.read_pause = pause
 
     def join2txt_browser(self, which, txt) -> None:
         pass
 
     def test(self) -> None:
         """
-
             定时器测试用例，无实际用处
         :return:
         """
         self.startTimer(100)
 
     def timerEvent(self, a0) -> None:
-        self.ui.readtext.append("<font color=\"#00FFFF\"> WOW <\\font>")
+        pass
 
 
 class LoginWindow(QWidget):
     """
-
         登录窗口类
-
     """
 
     def __init__(self, main_window: DanmakuReaderMainWindow):
@@ -246,19 +305,20 @@ class LoginWindow(QWidget):
 
 
     def display(self) -> None:
-        self.main_window.close()
         self.show()
+        self.main_window.hide()
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.main_window.display()
+        super().closeEvent(a0)
 
     def close(self) -> bool:
-        self.main_window.display()
         ret = super().close()
         return ret
 
     def loginwindow_login(self) -> None:
         """
-
             ”登录“按钮槽
-
         """
 
         sign: login_func.LoginState | None = None
@@ -312,7 +372,6 @@ class LoginWindow(QWidget):
     def __self_login_func_choice(self, idx) -> None:
         """
             方式选择导致的界面变更
-
         :param idx: 0-账号密码 1-验证码 2-二维码
         """
         self.login_func_index = idx
@@ -349,10 +408,9 @@ class QRCodeWindow(QWidget):
         self.qrcode_timer_id = self.startTimer(1000)
         self.show()
 
-    def close(self) -> bool:
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.killTimer(self.qrcode_timer_id)
-        ret = super().close()
-        return ret
+        super().closeEvent(a0)
 
 
 class UpdateContentWindow(QWidget):
@@ -449,15 +507,12 @@ class SettingsWindow(QWidget):
             for line in lines:
                 line = line.strip()
                 if line[0] == '-':
-                    regex_match.append(line)
+                    regex_match.append(line[1:])
                 elif line[0] == '$':
                     pass
                 else:
                     all_match.append(line)
             global_setting.ban_word.word_conform_update_and_dump(all_match_add=all_match, regex_match_add=regex_match)
-
-
-
 
         self.close()
 

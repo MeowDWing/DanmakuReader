@@ -3,6 +3,7 @@
     全局变量
 
 """
+import os
 from enum import Enum
 
 from bilibili_api import Credential
@@ -13,10 +14,11 @@ from funcs import file_func, login_func, launch_func
 
 
 # 版本控制
-version = 'v1.1-alpha'
+version = 'v1.2-alpha'
 proj_name = 'Danmaku Reader'
 
-"""全局变量"""
+
+"""背景变量"""
 settings: file_func.SettingsParser | None = None  # 设置
 INITIAL: file_func.InitialParser | None = None  # INITIAL文件解释器
 user_info: login_func.UserInfoParser | None = None  # 登陆用户信息解释器
@@ -28,6 +30,18 @@ ban_word: file_func.BanWordParser | None = None  # 屏蔽词文件解释器
 
 """ 讲述人初始化 """
 narrator: launch_func.Narrator | None = None
+volume_ctrl : launch_func.VolumeCtrl|None = None
+
+
+""" 操作变量 """
+read_pause = False
+
+""" 进程锁定 """
+thread_locked = False
+
+""" print 重定向; 初始化位于/logging/file_func.py """
+_origin_print = None
+redirect_print = None
 
 
 class FileState(Enum):
@@ -81,7 +95,17 @@ def load_setting():
 
 
 def other_init():
-    global narrator
-
+    global narrator, volume_ctrl
+    pid = os.getpid()
     narrator = launch_func.Narrator()
+    for i in range(3):
+        narrator.txt2audio('正在执行初始化，请稍后')
+        volume_ctrl = launch_func.VolumeCtrl(pid)
+        if volume_ctrl.check is True:
+            return True
+
+    return False
+
+
+
 

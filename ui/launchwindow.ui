@@ -6,60 +6,211 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>593</width>
-    <height>535</height>
+    <width>407</width>
+    <height>194</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>启动</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="1">
-    <widget class="QTextBrowser" name="recivetext"/>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLabel" name="reciver">
-     <property name="text">
-      <string>链接界面</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QTextBrowser" name="readtext"/>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="reader">
-     <property name="text">
-      <string>读取界面</string>
-     </property>
-    </widget>
-   </item>
    <item row="2" column="0" colspan="2">
+    <widget class="QGroupBox" name="read_ctrl">
+     <property name="title">
+      <string>读取控制</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="1">
+       <widget class="QComboBox" name="lvl_combox">
+        <item>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>4</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>5</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>6</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>7</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>8</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>9</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>10</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>15</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>20</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>21</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lvl_label">
+        <property name="text">
+         <string>读取最低等级</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="pause_btn">
+        <property name="text">
+         <string>暂停</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="volume">
-       <property name="text">
-        <string>音量</string>
+      <widget class="QGroupBox" name="voice_ctrl">
+       <property name="title">
+        <string>声音控制</string>
        </property>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QLabel" name="volume">
+          <property name="text">
+           <string>音量</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSlider" name="volume_bar">
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="singleStep">
+           <number>1</number>
+          </property>
+          <property name="pageStep">
+           <number>5</number>
+          </property>
+          <property name="value">
+           <number>90</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="voice_speed_label">
+          <property name="text">
+           <string>装饰滑块</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSlider" name="horizontalSlider">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="unused_label">
+          <property name="text">
+           <string>装饰滑块</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QSlider" name="horizontalSlider_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
-      <widget class="QSlider" name="volume_bar">
-       <property name="maximum">
-        <number>100</number>
+      <widget class="QGroupBox" name="other_ctrl">
+       <property name="title">
+        <string>杂项</string>
        </property>
-       <property name="singleStep">
-        <number>1</number>
-       </property>
-       <property name="pageStep">
-        <number>5</number>
-       </property>
-       <property name="value">
-        <number>90</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="1" column="1">
+         <widget class="QLabel" name="quantity_label">
+          <property name="text">
+           <string>待读量：</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>没啥用</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLabel" name="rest_quantity">
+          <property name="text">
+           <string>60</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>脸都不要了</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
     </layout>
@@ -69,23 +220,41 @@
  <resources/>
  <connections>
   <connection>
-   <sender>volume_bar</sender>
-   <signal>sliderReleased()</signal>
+   <sender>pause_btn</sender>
+   <signal>clicked()</signal>
    <receiver>Launch</receiver>
-   <slot>volume_adjust()</slot>
+   <slot>pause_read()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>215</x>
-     <y>514</y>
+     <x>341</x>
+     <y>171</y>
     </hint>
     <hint type="destinationlabel">
-     <x>325</x>
-     <y>513</y>
+     <x>331</x>
+     <y>183</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lvl_combox</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>Launch</receiver>
+   <slot>temp_lvl_limit()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>232</x>
+     <y>169</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>155</x>
+     <y>177</y>
     </hint>
    </hints>
   </connection>
  </connections>
  <slots>
   <slot>volume_adjust()</slot>
+  <slot>pause_read()</slot>
+  <slot>temp_lvl_limit()</slot>
  </slots>
 </ui>
