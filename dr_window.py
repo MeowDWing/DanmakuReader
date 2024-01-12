@@ -54,6 +54,7 @@ class DanmakuReaderMainWindow(QMainWindow):
         if self.update_auto_show:
             self.update_window = UpdateContentWindow()
             self.update_window.show()
+            self.update_auto_show = False
 
 
     def login_update(self, state=0) -> None:
@@ -405,7 +406,6 @@ class QRCodeWindow(QWidget):
         self.qrcode_timer_id = self.ui.setupUi(self)
 
     def display(self) -> None:
-        self.qrcode_timer_id = self.startTimer(1000)
         self.show()
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:

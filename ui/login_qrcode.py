@@ -52,7 +52,8 @@ class Ui_Login(object):
             _translate = QtCore.QCoreApplication.translate
             try:
                 events = api_login_func.check_qrcode_events(self.qrcode_sec)
-            except:
+            except Exception as e:
+                print(e)
                 self.label_2.setText(_translate("Login", "⚫️二维码登录"))
                 return
             else:

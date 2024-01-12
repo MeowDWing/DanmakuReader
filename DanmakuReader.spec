@@ -11,7 +11,7 @@ a = Analysis(
     './funcs/login_func.py'],
     pathex=[],
     binaries=[],
-    datas=[('README.md', '.'),('v1.1-alpha.md','.')],
+    datas=[('README.md', '.'),('v1.2-alpha.md','.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

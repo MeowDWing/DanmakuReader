@@ -211,8 +211,9 @@ class SettingsParser:
         :param d:
         :return:
         """
-        for key in d:
-            if d[key] is None:
+        c = d.copy()
+        for key in c:
+            if c[key] is None:
                 d.pop(key)
 
 

@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, sip
 from bilibili_api import settings
 
 import global_setting
