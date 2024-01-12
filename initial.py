@@ -5,7 +5,6 @@
 """
 
 import os
-import time
 from iosetting import JsonParser
 
 
@@ -98,7 +97,6 @@ def settings_initial():
         },
         'sys_setting': {
             'what': '系统行为设置',
-            'login': True,
             'save_account': False,
             'debug': False,
         },

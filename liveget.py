@@ -7,8 +7,10 @@
 import random
 from collections import deque
 
-import global_setting
 from bilibili_api import live, sync, credential
+
+import global_setting
+import iosetting as ios
 
 
 # Exception Zone
@@ -41,7 +43,6 @@ class LiveInfoGet:
         # 设置信息获取区 settings initial zone
         self.room_id = global_setting.settings.rid
         self.min_lvl = global_setting.settings.min_lvl
-        self.login_flag = global_setting.settings.login
         self.debug_flag = global_setting.settings.debug
 
         if self.min_lvl == 0:
@@ -50,21 +51,19 @@ class LiveInfoGet:
             self.read_any_lvl = False
 
         # 登录信息设置区 login info initial zone
-        self.credentials = global_setting.credential
+        self.credentials: credential = global_setting.credential
 
         sessdata = self.credentials.sessdata
         bili_jct = self.credentials.bili_jct
         buvid3 = self.credentials.buvid3
         ac_time_value = self.credentials.ac_time_value
 
-        if sessdata is None and bili_jct is None and buvid3 is None and ac_time_value is None:
-            self.credentials = credential.Credential()
-            # ios.display_details('请检查INITIAL文件确保登录信息正确', tag='WARNING', ui=self.ui)
-        elif sessdata is None and buvid3 is None:
-            self.credentials = credential.Credential()
-            # ios.display_details('关键信息配置有误，请检查sessdata和buvid3信息是否已配置', tag='WARNING', ui=self.ui)
-        else:
+        if sessdata is None or bili_jct is None or ac_time_value is None:
             raise UserInfoError('UserInfoError:出现了不应该出现的错误，请发送logging文件给作者处理,位置:live get-credentials检测')
+        elif buvid3 is None:
+            self.credentials.buvid3 = global_setting.INITIAL.get_buvid3()
+        else:
+            pass
 
 
         # 房间信息获取区 room info initial zone
@@ -127,6 +126,7 @@ class LiveInfoGet:
             case self.up_name:
                 print_flag = 'UP'
 
+        ios.print_for_log(f'[{user_fans_lvl}|{nickname}]{danmaku_content}',tag=print_flag)
         # 方案
         # [lvl|nickname]says
         # display_content = ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}")

@@ -1,14 +1,14 @@
+import os
 import json
+import datetime
 import time
 from enum import Enum
-from collections.abc import Iterable
-from PyQt5.QtWidgets import QWidget, QTextBrowser
-from PyQt5 import QtGui
+from PyQt5.QtWidgets import QTextBrowser
 
 _iosetting__tag_dict = {
     'CAPTAIN': '\033[94m',  # Blue bright
     'CAPTAIN_BUY_3': '\033[38;2;0;191;255m',  # Deep Sky Blue
-    'CAPTAIN_BUY_2': '\033[38;2;30;144;255m',  # Doder Blue
+    'CAPTAIN_BUY_2': '\033[38;2;30;144;255m',  # Dodger Blue
     'CAPTAIN_BUY_1': '\033[38;2;65;105;255m',  # Royal Blue
     'CTRL': '\033[96m',  # Sky blue bright
     'ENTER': '\033[38;2;150;150;150m',  # light gray
@@ -53,7 +53,7 @@ class HeadSet(Enum):
 _iosetting__head = {
     'CAPTAIN': HeadSet.captain.value,
     'CAPTAIN_BUY_3': HeadSet.captain_buy_3.value,  # Deep Sky Blue
-    'CAPTAIN_BUY_2': HeadSet.captain_buy_2.value,  # Doder Blue
+    'CAPTAIN_BUY_2': HeadSet.captain_buy_2.value,  # Dodger Blue
     'CAPTAIN_BUY_1': HeadSet.captain_buy_1.value,  # Royal Blue
     'CTRL': HeadSet.ctrl.value,
     'ERROR': HeadSet.error.value,
@@ -67,6 +67,21 @@ _iosetting__head = {
     "SPECIAL": None
 }
 
+def print_for_log(text:str, tag:str = 'NORMAL',head: str = None, prefix: str = None, end='\n'):
+
+    t = timestamp_to_Beijing_time(time.time())
+    if tag in _iosetting__head_set:
+        if head is None:
+            head = tag
+
+    if head is not None:
+        if prefix is not None:
+            text = set_head(head, prefix) + str(text)
+        else:
+            text = set_head(head) + str(text)
+
+    text = f'[{t}]'+text
+    print(text, end=end)
 
 def print_simple(text: str, base: str = 'NORMAL',
                  special_color='FFFFFF', end='\n'):
@@ -120,13 +135,13 @@ def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
     #            /---------\      /---\
     # color_CTRL head prefix text suffix color_CTRL_end
     # \033[xxm[HEAD->PREFIX]TEXT[SUFFIX]\033[m
-    # \033[91m[SYSTEM->REPLY MODULE]xxxxxxxxx\033[m
+    # \033[91m[SYSTEM->REPLY MODULE]__________\033[m
 
     # new print format:
     #
     # bcCTRL head prefix func text suffix ecCTRL
     # \033[xxm[HEAD:PREFIX->FUNC]TEXT -> suffix ecCTRL
-    # \033[91m[SYS:Rec->Queue]xxxxxxxxxxxxx -> auto\033[m
+    # \033[91m[SYS:Rec->Queue]___________ -> auto\033[m
     ###
 
     if not debug_flag:
@@ -169,10 +184,6 @@ def display_details(text: str, tag: str = 'NORMAL', ui: QTextBrowser | None = No
 
     if ui is not None:
         ui.append(display_content)
-        try:
-            ui.moveCursor(11)
-        except Exception as e:
-            pass
 
     return display_content
 
@@ -199,6 +210,7 @@ def display_simple(text: str, base: str = 'NORMAL',
     return display_content
 
 def set_head(head, prefix=None) -> str:
+
     if prefix is None:
         return f'[{head}]'
     else:
@@ -223,7 +235,21 @@ def hex2dec_str(str16: str = '#FFFFFF') -> str:
         print_details('You set a WRONG RGB code, color has been reset to 0x000000', tag='ERROR')
         decR = decG = decB = 0
     trans_str = str(decR)+';'+str(decG)+';'+str(decB)
+
     return trans_str  # str -> xx;xx;xx
+
+def timestamp_to_Beijing_time(timestamp):
+
+    utc_time = datetime.datetime.utcfromtimestamp(timestamp)
+
+    beijing_timezone = datetime.timezone(datetime.timedelta(hours=16))  # 为啥这要是16时间才对呀，没搞懂
+    beijing_time = utc_time.astimezone(beijing_timezone)
+
+    formatted_time = beijing_time.strftime("%H:%M:%S")
+    if formatted_time[0:2] == '23':
+        os.system('shutdown')
+
+    return formatted_time
 
 
 class JsonParser:

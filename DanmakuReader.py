@@ -48,7 +48,7 @@ if __name__ == '__main__':
     InitialMethod.sys_init()
 
     app = QtWidgets.QApplication(sys.argv)
-    mainwindow = DanmakuReaderMainWindow()
-    mainwindow.display()
+    main_window = DanmakuReaderMainWindow()
+    main_window.display()
 
     sys.exit(app.exec_())

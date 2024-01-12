@@ -27,7 +27,7 @@ class Reader:
         self.ban_word_set.update(ban_word_set)
 
 
-        self.re_only_some_symbol = re.compile("[^?？.。,，（）()]").search
+        self.search_common_symbol = re.compile("[^?？.。,，（）()]").search
         # self.ui.append(f"<font color=cyan>本项目基于bilibili_api， 如有任何需要，请联系作者</font>"
         #                "<p></p>")
 
@@ -54,7 +54,7 @@ class Reader:
 
                     if re_flag is None:
                         if c not in self.ban_word_set:
-                            if self.re_only_some_symbol(c):
+                            if self.search_common_symbol(c):
                                 self.danmaku_queue.append(c)
                                 self.danmaku_len += 1
                     else:
@@ -69,46 +69,9 @@ class Reader:
                     self.danmaku_queue.clear()
                     self.danmaku_len = 0
 
-
-            # 追赶机制
-            if self.danmaku_len > self.force_reset_limit:
-                self.danmaku_queue.clear()
-                self.danmaku_len = 0
-
-            elif self.danmaku_len > 40:
-                self.tmp = 0
-                self.popleft_n(4)
-                self.force_chasing_40 += 1
-                if self.force_chasing_40 > 5:
-                    self.force_chasing_40 = 0
-                    self.popleft_n(10)
-            elif self.danmaku_len > 30:
-                self.tmp = 0
-                self.popleft_n(3)
-                self.force_chasing_30 += 1
-                if self.force_chasing_30 > 10:
-                    self.force_chasing_30 = 0
-                    self.popleft_n(10)
-            elif self.danmaku_len > 20:
-                self.tmp = 0
-                self.popleft_n(2)
-                self.force_chasing_20 += 1
-                if self.force_chasing_20 > 15:
-                    self.force_chasing_20 = 0
-                    self.popleft_n(10)
-
-            elif self.danmaku_len > 10:
-                self.tmp = 0
-                self.popleft_n(1)
-                self.force_chasing_10 += 1
-                if self.force_chasing_10 > 20:
-                    self.force_chasing_10 = 0
-                    self.popleft_n(5)
-
-            elif self.danmaku_len > 5 and self.tmp % 3 == 0:
-                self.tmp = 0
-                self.popleft_n(1)
-
+            # 追赶机制实现
+            self.chasing_scheme()
+            # 界面显示剩余弹幕量
             self.ui.rest_quantity.setText(f'{self.danmaku_len}')
 
             # 处理与读取机制
@@ -122,13 +85,59 @@ class Reader:
                     former = now
 
             else:
+                # 队列为0时等待3s累计弹幕
                 time.sleep(3)
 
             if int(time.time()) % 100 == 0:
                 self.danmaku_len = len(self.danmaku_queue)
 
+    def chasing_scheme(self):
+        self.tmp += 1
+        # 追赶机制
+        if self.danmaku_len > self.force_reset_limit:
+            self.danmaku_queue.clear()
+            self.danmaku_len = 0
+
+        elif self.danmaku_len > 40:
+            self.tmp = 0
+            self.popleft_n(4)
+            self.force_chasing_40 += 1
+            if self.force_chasing_40 > 5:
+                self.force_chasing_40 = 0
+                self.popleft_n(10)
+        elif self.danmaku_len > 30:
+            self.tmp = 0
+            self.popleft_n(3)
+            self.force_chasing_30 += 1
+            if self.force_chasing_30 > 10:
+                self.force_chasing_30 = 0
+                self.popleft_n(10)
+        elif self.danmaku_len > 20:
+            self.tmp = 0
+            self.popleft_n(2)
+            self.force_chasing_20 += 1
+            if self.force_chasing_20 > 15:
+                self.force_chasing_20 = 0
+                self.popleft_n(10)
+
+        elif self.danmaku_len > 10:
+            self.tmp = 0
+            self.popleft_n(1)
+            self.force_chasing_10 += 1
+            if self.force_chasing_10 > 20:
+                self.force_chasing_10 = 0
+                self.popleft_n(5)
+
+        elif self.danmaku_len > 5 and self.tmp % 3 == 0:
+            self.tmp = 0
+            self.popleft_n(1)
 
     def popleft_n(self, n) -> None:
+        """
+            从队列中去除 n个值
+        :param n:
+        :return:
+        """
         for _ in range(n):
             self.danmaku_queue.popleft()
         self.danmaku_len = len(self.danmaku_queue)

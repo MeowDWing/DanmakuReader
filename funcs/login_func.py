@@ -10,7 +10,7 @@ import time
 from enum import Enum
 
 import bilibili_api
-from bilibili_api import login, login_func, exceptions, sync, user
+from bilibili_api import login, exceptions, sync, user
 from bilibili_api.credential import Credential
 from bilibili_api.login import login_with_password, login_with_sms, send_sms, PhoneNumber
 
@@ -112,7 +112,6 @@ def login_by_pw(username: str | None = None, password: str | None = None, save=F
         c = None
         check = True
     else:
-        global_setting.settings.login = True
         global_setting.settings.update_conform_and_dump()
 
     if save:

@@ -113,7 +113,6 @@ class SettingsParser:
         self.min_lvl = self.basic['min_level']
 
         self.sys = self.settings['sys_setting']
-        self.login = self.sys['login']
         self.save_account = self.sys['save_account']
         self.debug = self.sys['debug']
 
@@ -139,7 +138,6 @@ class SettingsParser:
         self.min_lvl = self.basic['min_level']
 
         self.sys = self.settings['sys_setting']
-        self.login = self.sys['login']
         self.save_account = self.sys['save_account']
         self.debug = self.sys['debug']
 
@@ -174,16 +172,14 @@ class SettingsParser:
         }
 
     @staticmethod
-    def sys_settings_dict_constructor(login: bool|None = None, save_account: bool|None = None, debug: bool|None = None):
+    def sys_settings_dict_constructor(save_account: bool|None = None, debug: bool|None = None):
         """
 
-        :param login:
         :param save_account:
         :param debug:
         :return:
         """
         return {
-            'login': login,
             'save_account': save_account,
             'debug': debug,
         }

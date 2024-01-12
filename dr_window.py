@@ -476,7 +476,6 @@ class SettingsWindow(QWidget):
         self.ui.rid_line.setText(str(global_setting.settings.rid))
         self.ui.lvl_combox.setCurrentText(str(global_setting.settings.min_lvl))
 
-        self.ui.auto_login_check.setChecked(global_setting.settings.login)
         self.ui.debug_check.setChecked(global_setting.settings.debug)
 
     def display(self) -> None:
@@ -508,7 +507,7 @@ class SettingsWindow(QWidget):
                 )
             if self.sys_changed:
                 sys_dict = global_setting.settings.sys_settings_dict_constructor(
-                    login=self.ui.auto_login_check.isChecked(), debug=self.ui.debug_check.isChecked()
+                    debug=self.ui.debug_check.isChecked()
                 )
             global_setting.settings.update_conform_and_dump(basic_dict=basic_dict, sys_dict=sys_dict)
 
