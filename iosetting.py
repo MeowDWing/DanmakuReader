@@ -198,46 +198,6 @@ def display_simple(text: str, base: str = 'NORMAL',
         ui.append(display_content)
     return display_content
 
-
-def logging(filename: str, txt: Iterable | str,
-            head: str = None, prefix: str = None, wrong_lvl: str = '',
-            exception: str = 'Unknown', except_msg: str = 'No Describe'):
-
-    if head is None:
-        log_head = f'{set_head(head=head, prefix=prefix)}'
-    else:
-        log_head = '[Default]'
-
-    local = time.localtime(time.time())
-    now = time.strftime("%H:%M:%S", t=local)
-
-    if isinstance(txt, Iterable):
-        lines = [f"--------{wrong_lvl}--------"]
-        lines.extend([f"[{now}|{log_head[1:-1]}]"])
-        lines.extend(['\t'+line for line in txt])
-        lines.extend([f"[except:{exception} | msg: {except_msg}]"])
-
-        """
-            logging format:
-            --------CASE(error|warning|oops)--------
-            [hh:mm:ss|head->prefix]
-                line1
-                line2
-                ...
-            [except: | msg:]              
-        """
-    else:  # not iterable
-        lines = [f">> [{now}|{set_head(head=head, prefix=prefix)[1:-1]}]{txt}[ex:{exception}|msg:{except_msg}]"]
-
-    with open(f'./logging/{filename}', mode='a', encoding='utf-8') as f:
-        f.writelines(lines)
-
-
-def logging_simple(filename: str, txt: str) -> None:
-    with open(f'./logging/{filename}', mode='a', encoding='utf-8') as f:
-        f.write(txt)
-
-
 def set_head(head, prefix=None) -> str:
     if prefix is None:
         return f'[{head}]'

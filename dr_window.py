@@ -27,7 +27,10 @@ class DanmakuReaderMainWindow(QMainWindow):
         super().__init__()
         self.ui = danmakureaderwindow.Ui_DanmakuReader()
         self.ui.setupUi(self)
+
+        self.online = False
         if sync(global_setting.credential.check_valid()):
+            self.online = True
             n = global_setting.user_info.nickname()
             self.ui.welcome.setText(
                 f"<p style=\" font-weight:600; color:#0000ff; text-align:center\">欢迎回来：{n}</p>"
@@ -68,6 +71,7 @@ class DanmakuReaderMainWindow(QMainWindow):
             online = True
 
         if online:
+            self.online = True
             global_setting.user_info.update(c=global_setting.credential)
             n = global_setting.user_info.nickname()
             self.ui.welcome.setText(
@@ -82,9 +86,17 @@ class DanmakuReaderMainWindow(QMainWindow):
         """
             启动（名词）窗口
         """
-        self.launch_window = LaunchWindow()
-        self.launch_window.display()
-        self.close()
+        if self.online:
+            self.launch_window = LaunchWindow()
+            self.launch_window.display()
+            self.close()
+        else:
+            QtWidgets.QMessageBox.information(
+                self,
+                "检测到账号未登录",
+                "请登陆后再启动",
+                QtWidgets.QMessageBox.Ok
+            )
 
     def settings(self) -> None:
         """

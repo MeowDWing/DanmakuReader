@@ -8,14 +8,6 @@ import global_setting
 import iosetting as ios
 
 
-def redirect_print() -> None:
-    pass
-    # f = open('./logging/print_cmd_logging.txt', mode='a')
-    # global_setting._origin_print = sys.stdout
-    # sys.stdout = f
-    # global_setting.redirect_print = f
-
-
 def file_clearer(path) -> None:
     if os.path.exists(path):
         archive = os.listdir(path)

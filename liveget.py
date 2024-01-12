@@ -4,13 +4,10 @@
     不过考虑到之后会做新的弹幕界面，所以先保留着，据作者毫无根据的想象，这些应该占不了多少性能
 
 """
-import time
-from collections import deque
 import random
-import logging
+from collections import deque
 
 import global_setting
-import iosetting as ios
 from bilibili_api import live, sync, credential
 
 
@@ -35,9 +32,6 @@ class LiveInfoGet:
         :param up_name: up的名字，用于标记弹幕显示颜色，无别的用处
         :param ctrl_name: 控制名，永远都是作者，改变弹幕显示颜色，如果以后有其他贡献者，会做成集合
         """
-        # 一次性参数区
-        need_login = False
-
         # 基本参数设置区 basic initial zone
         self.up_name = up_name
         self.ctrl_name = ctrl_name
@@ -55,30 +49,23 @@ class LiveInfoGet:
         else:
             self.read_any_lvl = False
 
-        if not global_setting.offline:
-            # 登录信息设置区 login info initial zone
-            self.credentials = global_setting.credential
+        # 登录信息设置区 login info initial zone
+        self.credentials = global_setting.credential
 
-            sessdata = self.credentials.sessdata
-            bili_jct = self.credentials.bili_jct
-            buvid3 = self.credentials.buvid3
-            ac_time_value = self.credentials.ac_time_value
+        sessdata = self.credentials.sessdata
+        bili_jct = self.credentials.bili_jct
+        buvid3 = self.credentials.buvid3
+        ac_time_value = self.credentials.ac_time_value
 
-            if sessdata is None and bili_jct is None and buvid3 is None and ac_time_value is None:
-                self.credentials = credential.Credential()
-                # ios.display_details('请检查INITIAL文件确保登录信息正确', tag='WARNING', ui=self.ui)
-            elif sessdata is None and buvid3 is None:
-                self.credentials = credential.Credential()
-                # ios.display_details('关键信息配置有误，请检查sessdata和buvid3信息是否已配置', tag='WARNING', ui=self.ui)
+        if sessdata is None and bili_jct is None and buvid3 is None and ac_time_value is None:
+            self.credentials = credential.Credential()
+            # ios.display_details('请检查INITIAL文件确保登录信息正确', tag='WARNING', ui=self.ui)
+        elif sessdata is None and buvid3 is None:
+            self.credentials = credential.Credential()
+            # ios.display_details('关键信息配置有误，请检查sessdata和buvid3信息是否已配置', tag='WARNING', ui=self.ui)
+        else:
+            raise UserInfoError('UserInfoError:出现了不应该出现的错误，请发送logging文件给作者处理,位置:live get-credentials检测')
 
-            # cookie 刷新与自动登录区 cookie refresh and login Zone
-            need_login = not sync(self.credentials.check_valid())
-            if need_login:
-                pass
-                # ios.display_simple('登录cookie需要更新，如需登录请重启程序并登录', base='WARNING', ui=self.ui)
-
-        else:  # if offline
-            self.credentials = None
 
         # 房间信息获取区 room info initial zone
         if self.room_id > 0:
@@ -94,17 +81,11 @@ class LiveInfoGet:
             raise UserInfoError("User_id maybe wrong, please check again")
 
         self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
-        file_handler = logging.FileHandler(f'./logging/print_cmd_logging_time-{time.time()}.txt')
-        self.room_event_stream.logger.addHandler(file_handler)
-        if global_setting.settings.debug:
-            self.room_event_stream.logger.setLevel(logging.DEBUG)
 
     def living_on(self):
 
         @self.room_event_stream.on('DANMU_MSG')
         async def on_danmaku(event):  # event -> dictionary
-            if self.debug_flag:
-                ios.logging_simple(filename='./logging.txt', txt='danmaku'+str(random.randint(0, 50000))+'='+str(event))
             self.danmaku_processing(event)
 
         sync(self.room_event_stream.connect())
@@ -114,6 +95,12 @@ class LiveInfoGet:
         user_fans_lvl = 0
         print_flag = 'NORMAL'
         if_read = False
+
+        if self.debug_flag:
+            r = random.randrange(0,100,1)
+            if r > 94:
+                with open('./logging/sample_danmaku.txt', 'a') as f:
+                    f.write(str(event))
 
         # main information processing Zone
         live_info = event['data']['info']  # list[Unknown, Msg, user_info, fans_info, Unknown:]
