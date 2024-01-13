@@ -230,15 +230,18 @@ class LaunchWindow(QWidget):
         self.init_reader_and_receiver()
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        """ 关闭事件捕获 """
+        # 音量保存部分
         s_vol = global_setting.settings.vol
         now_vol = self.volume_bar.value()
         if s_vol != now_vol:
             run_dict = global_setting.settings.run_dict_constructor(vol=now_vol)
             global_setting.settings.update_conform_and_dump(run_dict=run_dict)
-
+        # 音量保存部分结束
         super().closeEvent(a0)
 
     def init_reader_and_receiver(self) -> None:
+        """ 初始化弹幕事件获取与读线程 """
         self.__global_queue = deque()
         print('正在读取房间号...')
 
@@ -322,12 +325,9 @@ class LoginWindow(QWidget):
         self.main_window.hide()
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        """ 关闭事件捕获 """
         self.main_window.display()
         super().closeEvent(a0)
-
-    def close(self) -> bool:
-        ret = super().close()
-        return ret
 
     def loginwindow_login(self) -> None:
         """
@@ -368,7 +368,7 @@ class LoginWindow(QWidget):
 
     def loginwindow_save_password(self, save: bool) -> None:
         """
-            是否保存账号密码（not yet finished）
+            是否保存账号密码
         :param save: True or False
         """
         self.save_password_flag = save
@@ -456,10 +456,11 @@ class SettingsWindow(QWidget):
         self.refresh()
 
     def ban_word_content_change(self):
+        """ qt槽, 屏蔽词内容变更时更改 """
         self.ban_changed = True
 
     def ban_word_content_set(self):
-
+        """ qt初始化，设置界面内容 """
         self.ui.matching_edit.clear()
         for what_banned in global_setting.ban_word.all_match:
             self.ui.matching_edit.append(what_banned)
@@ -467,6 +468,7 @@ class SettingsWindow(QWidget):
             self.ui.matching_edit.append('-'+what_banned)
 
     def refresh(self) -> None:
+        """ 界面刷新 """
         self.ban_word_content_set()
 
         self.ui.sessdate_line.setText(global_setting.INITIAL.sessdate)
@@ -479,6 +481,7 @@ class SettingsWindow(QWidget):
         self.ui.debug_check.setChecked(global_setting.settings.debug)
 
     def display(self) -> None:
+        """ 界面显示 """
         self.cookie_changed = False
         self.basic_changed = False
         self.sys_changed = False
@@ -528,11 +531,13 @@ class SettingsWindow(QWidget):
         self.close()
 
     def cookie_change(self) -> None:
-        """ 是否更新 """
+        """ qt槽 是否更新 """
         self.cookie_changed = True
 
     def sys_change(self) -> None:
+        """ qt槽 是否更新 """
         self.sys_changed = True
 
     def basic_change(self) -> None:
+        """ qt槽 是否更新 """
         self.basic_changed = True

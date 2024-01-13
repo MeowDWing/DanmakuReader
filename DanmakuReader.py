@@ -10,6 +10,7 @@ import initial
 from dr_window import DanmakuReaderMainWindow
 
 class InitialMethod:
+    """ 程序准备工作类 """
     @classmethod
     def sys_init(cls):
         """

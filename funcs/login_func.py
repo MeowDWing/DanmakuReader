@@ -5,11 +5,8 @@
 """
 import urllib.parse
 import uuid
-import os
-import time
 from enum import Enum
 
-import bilibili_api
 from bilibili_api import login, exceptions, sync, user
 from bilibili_api.credential import Credential
 from bilibili_api.login import login_with_password, login_with_sms, send_sms, PhoneNumber
@@ -182,18 +179,3 @@ def login_by_sms(phone, code) -> LoginState:
             return LoginState.success
         else:
             return LoginState.fail
-
-
-def get_from_web():
-    """
-        已废弃，正在找时间删除
-    """
-    os.system('cls')
-    ios.print_details('你可以通过以下方式登录：\n'
-                      '图文步骤见：https://nemo2011.github.io/bilibili-api/#/get-credential\n'
-                      '1.打开网页版bilibili，登录账号，并按F12检查元素\n'
-                      '2.在标签栏选择应用（application）-> cookies -> https://xxx.bilibili.com(xxx可为live或www)\n'
-                      '3.以文本形式打开files文件夹中的INITIAL，并在对应位置填入名称对应的值\n'
-                      '[Tips]截至版本更新时，只需填入sessdate和buvid3即可\n'
-                      '4.确保在s.设置里打开自动登录（显示Y即为打开，输入对应字母切换开启/关闭状态）', tag='UP')
-    input('好的,我知道了(enter)')

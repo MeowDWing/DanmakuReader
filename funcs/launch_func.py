@@ -58,7 +58,7 @@ class Narrator:
 
 
 class VolumeCtrl:
-
+    """ 音量调整器（pycaw） """
     def __init__(self, pid):
 
         # volume ctrl zone
@@ -95,6 +95,7 @@ class VolumeCtrl:
 # 弹幕计数功能实现，暂时没用，将于以后加入时段弹幕量后加入主程序（注释编写时间：v1.2-alpha)
 
 class Linkedlist(object):
+    """ 链表类 """
     def __init__(self, value, succeed=None):
         self.value = value
         self.succeed = succeed

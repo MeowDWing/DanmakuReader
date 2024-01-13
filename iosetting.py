@@ -246,8 +246,6 @@ def timestamp_to_Beijing_time(timestamp):
     beijing_time = utc_time.astimezone(beijing_timezone)
 
     formatted_time = beijing_time.strftime("%H:%M:%S")
-    if formatted_time[0:2] == '23':
-        os.system('shutdown')
 
     return formatted_time
 
