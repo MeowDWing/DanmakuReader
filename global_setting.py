@@ -87,7 +87,7 @@ def other_init():
     pid = os.getpid()
     narrator = launch_func.Narrator()
     for i in range(3):
-        narrator.txt2audio('正在执行初始化，请稍后')
+        narrator.txt2audio(' ')
         volume_ctrl = launch_func.VolumeCtrl(pid)
         if volume_ctrl.check is True:
             return True

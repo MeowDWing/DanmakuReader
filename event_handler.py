@@ -142,5 +142,9 @@ class Reader:
             self.danmaku_queue.popleft()
         self.danmaku_len = len(self.danmaku_queue)
 
+
+class DanmakuCounterAndHandler:
+    pass
+
 if __name__ == '__main__':
     pass
