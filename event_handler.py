@@ -1,8 +1,12 @@
+import re
 import time
+import random
 from collections import deque
 
+from bilibili_api import live, sync
+
 import global_setting
-import re
+import iosetting as ios
 from ui import launchwindow
 
 
@@ -34,6 +38,13 @@ class Reader:
         self.player = global_setting.narrator
 
     def reader(self) -> None:
+
+        """
+
+            hint : 加入读取礼物，舰长等信息后，会启用竞争队列模式，新的高亮优先读取
+        :return:
+        """
+
         former = ''
         time.sleep(5)
         while True:
@@ -145,6 +156,95 @@ class Reader:
 
 class DanmakuCounterAndHandler:
     pass
+
+class EventProcessor:
+
+    def __init__(self, danmu:deque, gift:deque, others:deque, to_thread_reader:deque):
+        # 队列获取
+        self.danmu = danmu
+        self.gift = gift
+        self.others = others
+
+        self.to_thread_read = to_thread_reader
+
+        # 设置信息获取区 settings initial zone
+        #     |
+         #    -----> 弹幕处理需求获取
+        self.room_id = global_setting.settings.rid
+        self.min_lvl = global_setting.settings.min_lvl
+        self.debug_flag = global_setting.settings.debug
+
+        if self.min_lvl == 0:
+            self.read_any_lvl = True
+        else:
+            self.read_any_lvl = False
+
+
+        # 房间信息获取区 room info initial zone
+        if self.room_id > 0:
+            self.room = live.LiveRoom(room_display_id=self.room_id)
+            self.room_info = sync(self.room.get_room_info())
+            self.user_id = self.room_info['room_info']['uid']
+            self.up_name = self.room_info['anchor_info']['base_info']['uname']
+            if self.room_info['anchor_info']['medal_info'] is not None:
+                self.fans_badge = self.room_info['anchor_info']['medal_info']['medal_name']
+            else:
+                self.fans_badge = 'NO FANS BADGE'
+        else:
+            raise Exception("User_id maybe wrong, please check again")
+
+    def processor(self):
+        counter = range(8)
+        while True:
+            # 每处理8个弹幕检查一次礼物队列
+            for _ in counter:
+                if len(self.danmu)<1:
+                    break
+
+
+            if len(self.gift)>0:
+                pass
+
+    def danmaku_processor(self, event):
+        user_fans_lvl = 0
+        print_flag = 'NORMAL'
+        if_read = False
+
+        if self.debug_flag:
+            r = random.randrange(0, 100, 1)
+            if r > 94:
+                with open('./logging/sample_danmaku.txt', 'a') as f:
+                    f.write(str(event))
+
+        # main information processing Zone
+        live_info = event['data']['info']  # list[Unknown, Msg, user_info, fans_info, Unknown:]
+        danmaku_content = live_info[1]
+        user_main_info = live_info[2]  # list[uid, Nickname, Unknown:]
+        nickname = user_main_info[1]
+        user_fans_info = live_info[3]  # list[lvl, worn_badge, Unknown:]
+
+        if len(user_fans_info) > 0:
+            if user_fans_info[1] == self.fans_badge:
+                print_flag = 'FANS'
+                user_fans_lvl = user_fans_info[0]
+                if user_fans_lvl > 19:
+                    print_flag = 'CAPTAIN'
+                if user_fans_lvl >= self.min_lvl:
+                    if_read = True
+
+        if len(danmaku_content) > 0 and (self.read_any_lvl or if_read):
+            self.to_thread_read.append(danmaku_content)
+
+        match nickname:
+            case self.up_name:
+                print_flag = 'UP'
+
+        ios.print_for_log(f'[{user_fans_lvl}|{nickname}]{danmaku_content}', tag=print_flag)
+        # 方案
+        # [lvl|nickname]says
+        # display_content = ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}")
+        # ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}", tag=print_flag, ui=self.ui)
+
 
 if __name__ == '__main__':
     pass

@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['DanmakuReader.py','dr_window.py','initial.py','iosetting.py','liveget.py','reader.py', 'global_setting.py',
+    ['DanmakuReader.py','dr_window.py','initial.py','iosetting.py','distribution.py','event_handler.py', 'global_setting.py',
     './ui/danmakureaderwindow.py','./ui/launchwindow.py','./ui/login_qrcode.py','./ui/loginwindow.py',
     './ui/updatecontent.py', './ui/settingswindow.py','./funcs/file_func.py','./funcs/launch_func.py',
     './funcs/login_func.py'],

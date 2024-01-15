@@ -23,32 +23,30 @@ class UserInfoError(Exception):
         return self.error_info
 
 
-class LiveInfoGet:
+class ReceiveAndDistribution:
+    """
 
-    def __init__(self, g_queue: deque,
-                 up_name: str = '资深小狐狸', ctrl_name: str = '吾名喵喵之翼',
+        弹幕接收与分发线程，追踪所有事件，分发到指定队列
+
+    """
+
+    def __init__(self, danmaku: deque, gift: deque, others:deque,
+                 ctrl_name: str = '吾名喵喵之翼',
                  ):
         """
 
-        :param g_queue: 全局队列，多进程通信
-        :param up_name: up的名字，用于标记弹幕显示颜色，无别的用处
+
         :param ctrl_name: 控制名，永远都是作者，改变弹幕显示颜色，如果以后有其他贡献者，会做成集合
         """
         # 基本参数设置区 basic initial zone
-        self.up_name = up_name
         self.ctrl_name = ctrl_name
 
-        self._queue = g_queue
+        self.danmu_queue = danmaku
+        self.gift_queue = gift
+        self.others_queue = others
 
         # 设置信息获取区 settings initial zone
         self.room_id = global_setting.settings.rid
-        self.min_lvl = global_setting.settings.min_lvl
-        self.debug_flag = global_setting.settings.debug
-
-        if self.min_lvl == 0:
-            self.read_any_lvl = True
-        else:
-            self.read_any_lvl = False
 
         # 登录信息设置区 login info initial zone
         self.credentials: credential = global_setting.credential
@@ -82,52 +80,49 @@ class LiveInfoGet:
         self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
 
     def living_on(self):
+        """
+        Events：
+        + DANMU_MSG: 用户发送弹幕
+        + SEND_GIFT: 礼物
+        + COMBO_SEND：礼物连击
+        + GUARD_BUY：续费大航海
+        + SUPER_CHAT_MESSAGE：醒目留言（SC）
+        + SUPER_CHAT_MESSAGE_JPN：醒目留言（带日语翻译？）
+        + WELCOME: 老爷进入房间
+        + WELCOME_GUARD: 房管进入房间
+        + NOTICE_MSG: 系统通知（全频道广播之类的）
+        + PREPARING: 直播准备中
+        + LIVE: 直播开始
+        + ROOM_REAL_TIME_MESSAGE_UPDATE: 粉丝数等更新
+        + ENTRY_EFFECT: 进场特效
+        + ROOM_RANK: 房间排名更新
+        + INTERACT_WORD: 用户进入直播间
+        + ACTIVITY_BANNER_UPDATE_V2: 好像是房间名旁边那个
+        xx
+        小时榜
+        + == == == == == == == == == == == == == =
+        + bilibili api 自定义事件：
+        + == == == == == == == == == == == == ==
+        + VIEW: 直播间人气更新
+        + ALL: 所有事件
+        + DISCONNECT: 断开连接（传入连接状态码参数）
+        + TIMEOUT: 心跳响应超时
+        + VERIFICATION_SUCCESSFUL: 认证成功
+        """
 
-        @self.room_event_stream.on('DANMU_MSG')
-        async def on_danmaku(event):  # event -> dictionary
-            self.danmaku_processing(event)
+        @self.room_event_stream.on('ALL')
+        async def event_monitor(event):  # event -> dictionary
+            self.event_distribution(event)
 
         sync(self.room_event_stream.connect())
 
-    def danmaku_processing(self, event: dict = None):
+    def event_distribution(self, event: dict = None):
+        ctrl_type = event['type']
+        match ctrl_type:
+            case 'DANMU_MSG': self.danmu_queue.append(event['data'])
+            case 'SEND_GIFT': self.gift_queue.append(event['data'])
+            case 'SUPER_CHAT_MESSAGE': self.gift_queue.append(event['data'])
+            case 'GUARD_BUY': self.gift_queue.append(event['data'])
+            case _: self.others_queue.append(event['data'])
 
-        user_fans_lvl = 0
-        print_flag = 'NORMAL'
-        if_read = False
 
-        if self.debug_flag:
-            r = random.randrange(0,100,1)
-            if r > 94:
-                with open('./logging/sample_danmaku.txt', 'a') as f:
-                    f.write(str(event))
-
-        # main information processing Zone
-        live_info = event['data']['info']  # list[Unknown, Msg, user_info, fans_info, Unknown:]
-        danmaku_content = live_info[1]
-        user_main_info = live_info[2]  # list[uid, Nickname, Unknown:]
-        nickname = user_main_info[1]
-        user_fans_info = live_info[3]  # list[lvl, worn_badge, Unknown:]
-
-        if len(user_fans_info) > 0:
-            if user_fans_info[1] == self.fans_badge:
-                print_flag = 'FANS'
-                user_fans_lvl = user_fans_info[0]
-                if user_fans_lvl > 19:
-                    print_flag = 'CAPTAIN'
-                if user_fans_lvl >= self.min_lvl:
-                    if_read = True
-
-        if len(danmaku_content) > 0 and (self.read_any_lvl or if_read):
-                self._queue.append(danmaku_content)
-
-        match nickname:
-            case self.ctrl_name:
-                print_flag = 'CTRL'
-            case self.up_name:
-                print_flag = 'UP'
-
-        ios.print_for_log(f'[{user_fans_lvl}|{nickname}]{danmaku_content}',tag=print_flag)
-        # 方案
-        # [lvl|nickname]says
-        # display_content = ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}")
-        # ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}", tag=print_flag, ui=self.ui)

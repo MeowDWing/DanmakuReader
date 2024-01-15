@@ -7,23 +7,25 @@ import pyttsx3
 
 from ui import launchwindow
 
-import liveget as lg
+import distribution as lg
 import event_handler
 
 
-class RecThread(QThread):
+class DistributeThread(QThread):
     """
-        接收线程
+        分发线程
     """
-    def __init__(self, _g_queue: deque):
+    def __init__(self, danmu:deque, gift:deque, others:deque):
         super().__init__()
-        self._g_queue = _g_queue
+        self.danmu = danmu
+        self.gift = gift
+        self.others = others
 
-        self.x = None
+        self.distributor = None
 
     def run(self):
-        self.x = lg.LiveInfoGet(g_queue=self._g_queue)
-        self.x.living_on()
+        self.distributor = lg.ReceiveAndDistribution(danmaku=self.danmu, gift=self.gift, others=self.others)
+        self.distributor.living_on()
 
 
 class RdThread(QThread):

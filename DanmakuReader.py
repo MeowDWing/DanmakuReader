@@ -37,10 +37,12 @@ class InitialMethod:
     @staticmethod
     def log_init():
         """日志与输出初始化"""
-        f = open('./logging/print_cmd_logging.txt', 'a')
-        f.write(f'---{time.time()}---\n')
-        sys.stdout = f
-        logging.basicConfig(level=logging.INFO, stream=sys.stdout, force=True)
+        if not global_setting.settings.debug:
+            print(global_setting.settings.debug)
+            f = open('./logging/print_cmd_logging.txt', 'a')
+            f.write(f'---{time.time()}---\n')
+            sys.stdout = f
+            logging.basicConfig(level=logging.INFO, stream=sys.stdout, force=True)
 
 
 

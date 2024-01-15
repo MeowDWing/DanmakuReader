@@ -106,7 +106,7 @@ def print_simple(text: str, base: str = 'NORMAL',
 
 
 def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
-                  head: str = None, prefix: str = None, log=False, special_color='FFFFFF', end='\n'):
+                  head: str = None, prefix: str = None, special_color='FFFFFF', end='\n'):
     begin_str = ''
     end_str = '\033[m'
 
@@ -148,10 +148,6 @@ def print_details(text: str, tag: str = 'NORMAL', debug_flag: bool = False,
         print(begin_str, end='')
         print(text, end='')
         print(end_str, end=end)
-    if log or debug_flag:
-        log_file = open("./logging.txt", mode='a', encoding='utf-8')
-        log_file.write(text+end)
-        log_file.close()
 
 
 def display_details(text: str, tag: str = 'NORMAL', ui: QTextBrowser | None = None,

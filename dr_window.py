@@ -159,9 +159,11 @@ class LaunchWindow(QWidget):
         self.ui = launchwindow.Ui_Launch()
         self.ui.setupUi(self)
 
-        self.__global_queue = None
-        self.process_receiver: launch_func.RecThread | None = None
-        self.process_reader: launch_func.RecThread | None = None
+        self.__global_queue_danmu = None
+        self.__global_queue_gift = None
+        self.__global_queue_others = None
+        self.thread_distribution: launch_func.DistributeThread | None = None
+        self.thread_reader: launch_func.RdThread | None = None
 
         self.ui.lvl_combox.setCurrentText(str(global_setting.settings.min_lvl))
 
@@ -242,20 +244,26 @@ class LaunchWindow(QWidget):
 
     def init_reader_and_receiver(self) -> None:
         """ 初始化弹幕事件获取与读线程 """
-        self.__global_queue = deque()
+        self.__global_queue_danmu = deque()
+        self.__global_queue_gift = deque()
+        self.__global_queue_others = deque()
+
         print('正在读取房间号...')
 
-        print('正在初始化弹幕获取器...')
-        self.process_receiver = launch_func.RecThread(_g_queue=self.__global_queue)
-
+        print('正在初始化事件分发器...')
+        self.thread_distribution = launch_func.DistributeThread(
+            danmu=self.__global_queue_danmu, gift=self.__global_queue_gift, others=self.__global_queue_others
+        )
+        print('正在初始化事件处理器...')
+        print('正在初始化计数器...')
         print("正在初始化阅读器...")
-        self.process_reader = launch_func.RdThread(_g_queue=self.__global_queue, _ui=self.ui)
+        self.thread_reader = launch_func.RdThread(_g_queue=self.__global_queue, _ui=self.ui)
 
-        self.process_reader.start()
-        self.process_receiver.start()
+        self.thread_reader.start()
+        self.thread_distribution.start()
 
     def temp_lvl_limit(self):
-        if isinstance(self.process_receiver, launch_func.RecThread):
+        if isinstance(self.thread_distribution, launch_func.DistributeThread):
             temp_lvl_str = self.ui.lvl_combox.currentText()
             if len(temp_lvl_str)<5:
                 temp_lvl = int(temp_lvl_str)
@@ -263,11 +271,11 @@ class LaunchWindow(QWidget):
                 temp_lvl = -1
 
             if temp_lvl>0:
-                self.process_receiver.x.min_lvl = temp_lvl
-                self.process_receiver.x.read_any_lvl = False
+                self.thread_distribution.distributor.min_lvl = temp_lvl
+                self.thread_distribution.distributor.read_any_lvl = False
             elif temp_lvl==0:
-                self.process_receiver.x.min_lvl = 0
-                self.process_receiver.x.read_any_lvl = True
+                self.thread_distribution.distributor.min_lvl = 0
+                self.thread_distribution.distributor.read_any_lvl = True
 
 
     def pause_read(self):
