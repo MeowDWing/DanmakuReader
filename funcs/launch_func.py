@@ -27,6 +27,20 @@ class DistributeThread(QThread):
         self.distributor = lg.ReceiveAndDistribution(danmaku=self.danmu, gift=self.gift, others=self.others)
         self.distributor.living_on()
 
+class EventHandlerThread(QThread):
+    def __init__(self, danmu:deque, gift:deque, others:deque, to_thread_reader:deque):
+        super().__init__()
+        self._event_handler = None
+        self.danmu = danmu
+        self.gift = gift
+        self.others = others
+        self.to_thread_reader = to_thread_reader
+
+    def run(self) -> None:
+        self._event_handler = event_handler.EventProcessor(
+            danmu=self.danmu, gift=self.gift, others=self.others, to_thread_reader=self.to_thread_reader
+        )
+        self._event_handler.processor()
 
 class RdThread(QThread):
     """
@@ -94,103 +108,7 @@ class VolumeCtrl:
         norm_vol = max(0.0, min(1.0, vol / 100.0))
         self.interface.SetMasterVolume(norm_vol, None)
 
-# 弹幕计数功能实现，暂时没用，将于以后加入时段弹幕量后加入主程序（注释编写时间：v1.2-alpha)
-
-class Linkedlist(object):
-    """ 链表类 """
-    def __init__(self, value, succeed=None):
-        self.value = value
-        self.succeed = succeed
-
-    def __len__(self):
-        if self.succeed is not None:
-            i = self.succeed.__len__() + 1
-        else:
-            i = 1
-
-        return i
-
-    def cut(self):
-        ret = self.succeed
-        self.succeed = None
-        return ret
 
 
-class DanmakuCountNode(Linkedlist):
-    def __init__(self, succeed=None):
-        t = int(time.time())
-        super().__init__(t, succeed)
-
-    def cut(self):
-        ret = super().cut()
-        if ret.succeed is not None:
-            former = ret.succeed
-            former.succeed.cut()
-        del ret
-
-class Counter:
-    """
-
-        弹幕计数器
-
-    """
-    def __init__(self):
-        # [danmaku content] : DanmakuCountNode
-        self.count = dict()
-        self.common_preserve = []
-        self.common_preserve_min_len = 0
-
-    def append(self, danmaku_content):
-        if danmaku_content in self.count.keys():
-            p: DanmakuCountNode = self.count[danmaku_content]
-            newp = DanmakuCountNode(p)
-        else:
-            newp = DanmakuCountNode(None)
-
-        self.count[danmaku_content] = newp
-        self.update_maintain(newp)
-        if l:=newp.__len__()>self.common_preserve_min_len:
-            self.common_preserve.append((danmaku_content,l))
-
-    def common_maintain(self):
-        temp_cp = [] # temp common preserve list
-        for tup in self.common_preserve:
-            if tup[0] in self.count.keys():
-                self.update_maintain(self.count[tup[0]])
-                l = len(self.count[tup[0]])
-                temp_cp.append((tup[0],l))
-            else:
-                pass
-
-        new_cp = sorted(temp_cp,key=lambda x:x[1],reverse=True)
-        if len(new_cp) > 10:
-            self.common_preserve = new_cp[0:10]
-        else:
-            self.common_preserve = new_cp
-
-        self.common_preserve_min_len = new_cp[-1][1]
-
-    def update_maintain(self, p:DanmakuCountNode):
-        if p.value+600<int(time.time()):
-            p.cut()
-        else:
-            if p.succeed is not None:
-                self.update_maintain(p.succeed)
-            else:
-                pass
-
-    def absolutely_maintain(self):
-        for key in self.count.keys():
-            self.update_maintain(self.count[key])
-            if (l := len(self.count[key]))>self.common_preserve_min_len:
-                self.common_preserve.append((self.count[key],l))
-
-        new_cp = sorted(self.common_preserve, key=lambda x: x[1], reverse=True)
-        if len(new_cp) > 10:
-            self.common_preserve = new_cp[0:10]
-        else:
-            pass
-
-        self.common_preserve_min_len = self.common_preserve[-1][1]
 
 

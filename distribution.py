@@ -31,16 +31,11 @@ class ReceiveAndDistribution:
     """
 
     def __init__(self, danmaku: deque, gift: deque, others:deque,
-                 ctrl_name: str = '吾名喵喵之翼',
                  ):
         """
-
-
-        :param ctrl_name: 控制名，永远都是作者，改变弹幕显示颜色，如果以后有其他贡献者，会做成集合
+        接收与分发类
         """
-        # 基本参数设置区 basic initial zone
-        self.ctrl_name = ctrl_name
-
+        # 分发队列
         self.danmu_queue = danmaku
         self.gift_queue = gift
         self.others_queue = others
@@ -67,15 +62,6 @@ class ReceiveAndDistribution:
         # 房间信息获取区 room info initial zone
         if self.room_id > 0:
             self.room = live.LiveRoom(room_display_id=self.room_id)
-            self.room_info = sync(self.room.get_room_info())
-            self.user_id = self.room_info['room_info']['uid']
-            self.up_name = self.room_info['anchor_info']['base_info']['uname']
-            if self.room_info['anchor_info']['medal_info'] is not None:
-                self.fans_badge = self.room_info['anchor_info']['medal_info']['medal_name']
-            else:
-                self.fans_badge = 'NO FANS BADGE'
-        else:
-            raise UserInfoError("User_id maybe wrong, please check again")
 
         self.room_event_stream = live.LiveDanmaku(self.room_id, credential=self.credentials)
 
@@ -123,6 +109,6 @@ class ReceiveAndDistribution:
             case 'SEND_GIFT': self.gift_queue.append(event['data'])
             case 'SUPER_CHAT_MESSAGE': self.gift_queue.append(event['data'])
             case 'GUARD_BUY': self.gift_queue.append(event['data'])
-            case _: self.others_queue.append(event['data'])
+            case _: pass
 
 

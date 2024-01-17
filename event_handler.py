@@ -2,6 +2,7 @@ import re
 import time
 import random
 from collections import deque
+from enum import Enum
 
 from bilibili_api import live, sync
 
@@ -9,16 +10,105 @@ import global_setting
 import iosetting as ios
 from ui import launchwindow
 
+class MessageType(Enum):
+    DANMU = 0
+    NORMAL_GIFT = 1
+    WEALTHY_GIFT = 2
+    SC = 4
+    CAPTAIN_BUY = 8
+
+
+# 弹幕计数功能实现，暂时没用，将于以后加入时段弹幕量后加入主程序（注释编写时间：v1.2-alpha)
+class Counter:
+    """
+
+        弹幕计数器
+
+    """
+    def __init__(self):
+        # [danmaku content] : DanmakuCountNode
+        self.count = dict()
+        self.common_preserve = []
+        self.common_preserve_min_len = 0
+
+    def append(self, danmaku_content):
+        t = int(time.time())
+
+        if danmaku_content in self.count.keys():
+            q: deque = self.count[danmaku_content]
+            q.append(t)
+        else:
+            q = deque()
+            self.count[danmaku_content] = q
+
+        self.update_maintain(q)
+        if l:=len(q)>self.common_preserve_min_len:
+            self.common_preserve.append((danmaku_content,l))
+
+    def common_maintain(self):
+        temp_cp = [] # temp common preserve list
+        for tup in self.common_preserve:
+            if tup[0] in self.count.keys():
+                self.update_maintain(self.count[tup[0]])
+                l = len(self.count[tup[0]])
+                temp_cp.append((tup[0],l))
+            else:
+                pass
+
+        new_cp = sorted(temp_cp,key=lambda x:x[1],reverse=True)
+        if len(new_cp) > 10:
+            self.common_preserve = new_cp[0:10]
+        else:
+            self.common_preserve = new_cp
+
+        self.common_preserve_min_len = new_cp[-1][1]
+
+    def update_maintain(self, q: deque):
+        self.cut(q, int(time.time())-600)
+
+
+    def absolutely_maintain(self):
+        for key in self.count.keys():
+            self.update_maintain(self.count[key])
+            if (l := len(self.count[key]))>self.common_preserve_min_len:
+                self.common_preserve.append((self.count[key],l))
+
+        new_cp = sorted(self.common_preserve, key=lambda x: x[1], reverse=True)
+        if len(new_cp) > 10:
+            self.common_preserve = new_cp[0:10]
+        else:
+            pass
+
+        self.common_preserve_min_len = self.common_preserve[-1][1]
+
+    @staticmethod
+    def cut(queue: deque, threshold_t: int):
+        if len(queue) < 1:
+            return
+        while True:
+            create_t = queue.popleft()
+            if create_t > threshold_t:
+                queue.appendleft(create_t)
+                break
+            elif len(queue) < 1:
+                break
+            else:
+                pass
+        return
+
 
 class Reader:
 
-    def __init__(self, global_queue: deque, _ui: launchwindow):
+    def __init__(self, preprocessing_queue: deque, _ui: launchwindow):
         self.danmaku_queue = deque()
         self.danmaku_len = 0
         self.tmp = 0
-        self._queue = global_queue
+        self._queue = preprocessing_queue
         self.ui = _ui
         self.__PREFIX = 'Reader'
+
+        self.base_queue = deque()
+        self.priority_queue = deque()
 
         self.force_chasing_10 = 0  # 20
         self.force_chasing_20 = 0  # 15
@@ -59,8 +149,12 @@ class Reader:
                     所以认为这里线程安全是合理的。
                 '''
                 while len(self._queue) > 0:
-                    c: str = self._queue.popleft()
-                    c = c.strip()
+                    msg: tuple = self._queue.popleft()
+                    if msg[0]>0:
+                        self.priority_queue.append(msg)
+                        continue
+                    else:
+                        c = msg[1].strip()
                     re_flag = re.search(self.re_ban_str, c)
 
                     if re_flag is None:
@@ -85,22 +179,30 @@ class Reader:
             # 界面显示剩余弹幕量
             self.ui.rest_quantity.setText(f'{self.danmaku_len}')
 
-            # 处理与读取机制
-            if self.danmaku_len != 0:
-                now = self.danmaku_queue.popleft()
-                if now == former:
-                    self.danmaku_len -= 1
-                else:
-                    self.player.txt2audio(now)
-                    self.danmaku_len -= 1
-                    former = now
+            # 优先队列处理
+            while len(self.priority_queue)>0:
+                msg: tuple = self.priority_queue.popleft()
+                c = msg[1]
+                self.player.txt2audio(c)
 
             else:
-                # 队列为0时等待3s累计弹幕
-                time.sleep(3)
 
-            if int(time.time()) % 100 == 0:
-                self.danmaku_len = len(self.danmaku_queue)
+                # 处理与读取机制
+                if self.danmaku_len != 0:
+                    now = self.danmaku_queue.popleft()
+                    if now == former:
+                        self.danmaku_len -= 1
+                    else:
+                        self.player.txt2audio(now)
+                        self.danmaku_len -= 1
+                        former = now
+
+                else:
+                    # 队列为0时等待3s累计弹幕
+                    time.sleep(3)
+
+                if int(time.time()) % 100 == 0:
+                    self.danmaku_len = len(self.danmaku_queue)
 
     def chasing_scheme(self):
         self.tmp += 1
@@ -155,16 +257,60 @@ class Reader:
 
 
 class DanmakuCounterAndHandler:
-    pass
+    def __init__(self, from_danmu_processor:deque, ui: launchwindow):
+        self.counter = Counter()
+        self.danmu = from_danmu_processor
+
+        self._ui:launchwindow.Ui_Launch = ui
+
+    def count(self):
+        common_maintain_timer = 120
+        absolutely_maintain_counter = 15
+        last_maintain = int(time.time())
+        i = 1000
+
+        while True:
+            t = int(time.time())
+            if t-last_maintain > common_maintain_timer:
+                if absolutely_maintain_counter > 1:
+                    self.counter.common_maintain()
+                    absolutely_maintain_counter -= 1
+                else:
+                    self.counter.absolutely_maintain()
+                    absolutely_maintain_counter = 15
+
+            while i > 1:
+                i -= 1
+                danmaku_content = self.danmu.popleft()
+                self.counter.append(danmaku_content)
+
+            self.update()
+
+    def update(self):
+        if self.counter.common_preserve_min_len == self.counter.common_preserve[-1][1]:
+            pass
+        else:
+            self.counter.common_preserve.sort(key=lambda x:x[1], reverse=True)
+
+        tips = ''
+        cp = self.counter.common_preserve
+        for i in range(len(cp)):
+            tips = tips + f'{i+1}:{cp[0]} - {cp[1]}\n'
+
+        first = f'{cp[0][0]}'
+        print('locate: event_handler - l291 - not yet finished')
+
+
 
 class EventProcessor:
 
-    def __init__(self, danmu:deque, gift:deque, others:deque, to_thread_reader:deque):
+    def __init__(self, danmu:deque, gift:deque, others:deque, to_thread_reader:deque, to_counter:deque):
         # 队列获取
         self.danmu = danmu
         self.gift = gift
         self.others = others
 
+        self.to_counter = to_counter
         self.to_thread_read = to_thread_reader
 
         # 设置信息获取区 settings initial zone
@@ -200,10 +346,17 @@ class EventProcessor:
             for _ in counter:
                 if len(self.danmu)<1:
                     break
-
+                else:
+                    event = self.danmu.popleft()
+                    self.danmaku_processor(event)
 
             if len(self.gift)>0:
-                pass
+                while True:
+                    if len(self.gift)<1:
+                        break
+                    else:
+                        event = self.gift.popleft()
+                        self.gift_processor(event)
 
     def danmaku_processor(self, event):
         user_fans_lvl = 0
@@ -217,11 +370,13 @@ class EventProcessor:
                     f.write(str(event))
 
         # main information processing Zone
-        live_info = event['data']['info']  # list[Unknown, Msg, user_info, fans_info, Unknown:]
+        live_info = event['info']  # list[Unknown, Msg, user_info, fans_info, Unknown:]
         danmaku_content = live_info[1]
         user_main_info = live_info[2]  # list[uid, Nickname, Unknown:]
         nickname = user_main_info[1]
         user_fans_info = live_info[3]  # list[lvl, worn_badge, Unknown:]
+
+        self.to_counter.append(danmaku_content)
 
         if len(user_fans_info) > 0:
             if user_fans_info[1] == self.fans_badge:
@@ -233,7 +388,8 @@ class EventProcessor:
                     if_read = True
 
         if len(danmaku_content) > 0 and (self.read_any_lvl or if_read):
-            self.to_thread_read.append(danmaku_content)
+            package = (0,danmaku_content) #(类型， 内容)
+            self.to_thread_read.append(package)
 
         match nickname:
             case self.up_name:
@@ -244,6 +400,48 @@ class EventProcessor:
         # [lvl|nickname]says
         # display_content = ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}")
         # ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}", tag=print_flag, ui=self.ui)
+
+    def gift_processor(self, event):
+        cmd = event['cmd']
+        match cmd:
+            case 'SEND_GIFT': self.gift_processor_part_gift(event)
+            case 'COMBO_SEND': pass
+            case 'SUPER_CHAT_MESSAGE': self.gift_processor_part_SC(event)
+            case 'GUARD_BUY': self.gift_processor_part_captain(event)
+
+    def gift_processor_part_gift(self, event):
+        print('[GIFT]'+event)
+
+    def gift_processor_part_SC(self, event):
+        SC_info = event['data']
+
+        price = SC_info['price']
+
+        message = SC_info['message']
+        user_info = SC_info['user_info']
+        nickname = user_info['uname']
+
+        says = f'{nickname}发来价值{price}的醒目留言说：{message}'
+        package = (2,says)
+        self.to_thread_read.append(package)
+
+    def gift_processor_part_captain(self, event):
+        purchase_info = event['data']
+
+        # captain_name = purchase_info['username']
+        # price = purchase_info['price']
+        # lvl_name = purchase_info['gift_name']
+        # lvl = purchase_info['guard_level']
+        # tag = 'CAPTAIN_BUY_3'
+        # match lvl:
+        #     case 3:
+        #         tag = 'CAPTAIN_BUY_3'
+        #     case 2:
+        #         tag = 'CAPTAIN_BUY_2'
+        #     case 1:
+        #         tag = 'CAPTAIN_BUY_1'
+
+        print(f'[CAPTAIN]{purchase_info}')
 
 
 if __name__ == '__main__':
