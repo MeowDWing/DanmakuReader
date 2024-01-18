@@ -162,6 +162,7 @@ class LaunchWindow(QWidget):
         self.__global_queue_danmu = None
         self.__global_queue_gift = None
         self.__global_queue_others = None
+        self.__global_queue_to_read = None
         self.thread_distribution: launch_func.DistributeThread | None = None
         self.thread_reader: launch_func.RdThread | None = None
 
@@ -187,6 +188,19 @@ class LaunchWindow(QWidget):
         self.volume_bar.mouseMoveEvent = self.slider_mouse_move_event
         # - 事件变量整理
         self.volume_bar_pressed = False
+
+        # 特殊读取初始化
+        '''
+            extra : gift - 1 | sc - 2 | captain : 4
+        '''
+        extra:int = global_setting.settings.extra_reading
+        if extra % 2 == 1:
+            self.ui.gift_check.setChecked(True)
+        if extra % 4 > 1:
+            self.ui.sc_check.setChecked(True)
+        if extra > 3:
+            self.ui.ship_check.setChecked(True)
+
 
 
     '''  ------ 音量调节函数部分 起始 -------- '''
@@ -236,10 +250,18 @@ class LaunchWindow(QWidget):
         # 音量保存部分
         s_vol = global_setting.settings.vol
         now_vol = self.volume_bar.value()
-        if s_vol != now_vol:
-            run_dict = global_setting.settings.run_dict_constructor(vol=now_vol)
+
+        # 额外读取部分
+        extra = 0
+        s_extra = global_setting.settings.extra_reading
+        extra += 4 if self.ui.ship_check.isChecked() else 0
+        extra += 2 if self.ui.sc_check.isChecked() else 0
+        extra += 1 if self.ui.gift_check.isChecked() else 0
+
+        if s_vol != now_vol or extra != s_extra:
+            run_dict = global_setting.settings.run_dict_constructor(vol=now_vol,extra_reading=extra)
             global_setting.settings.update_conform_and_dump(run_dict=run_dict)
-        # 音量保存部分结束
+
         super().closeEvent(a0)
 
     def init_reader_and_receiver(self) -> None:
@@ -247,6 +269,7 @@ class LaunchWindow(QWidget):
         self.__global_queue_danmu = deque()
         self.__global_queue_gift = deque()
         self.__global_queue_others = deque()
+        self.__global_queue_to_read = deque()
 
         print('正在读取房间号...')
 
@@ -257,7 +280,7 @@ class LaunchWindow(QWidget):
         print('正在初始化事件处理器...')
         print('正在初始化计数器...')
         print("正在初始化阅读器...")
-        self.thread_reader = launch_func.RdThread(_g_queue=self.__global_queue, _ui=self.ui)
+        self.thread_reader = launch_func.RdThread(_g_queue=self.__global_queue_to_read, _ui=self.ui)
 
         self.thread_reader.start()
         self.thread_distribution.start()

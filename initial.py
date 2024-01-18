@@ -103,6 +103,7 @@ def settings_initial():
         'running': {
             'what': '运行中属性',
             'volume': 90,
+            'extra_reading' : 0
         }
     }
 

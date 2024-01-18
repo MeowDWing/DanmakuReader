@@ -118,6 +118,8 @@ class SettingsParser:
 
         self.running = self.settings['running']
         self.vol = self.running['volume']
+        # gift - 1  |  sc - 2  | captain - 4
+        self.extra_reading = self.running['extra_reading']
 
     def to_update(self, basic_dict=None, sys_dict=None, run_dict=None):
         if basic_dict is not None:
@@ -143,6 +145,7 @@ class SettingsParser:
 
         self.running = self.settings['running']
         self.vol = self.running['volume']
+        self.extra_reading = self.running['extra_reading']
 
     def dump(self):
         d = {
@@ -185,11 +188,12 @@ class SettingsParser:
         }
 
     @staticmethod
-    def run_dict_constructor(vol: str|int|None = None):
+    def run_dict_constructor(vol: str|int|None = None, extra_reading: str|int|None = None):
         if vol is None:
             vol = 90
         return {
             'volume': int(vol),
+            'extra_reading': int(extra_reading)
         }
 
     @staticmethod

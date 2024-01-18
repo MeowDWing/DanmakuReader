@@ -12,10 +12,9 @@ from ui import launchwindow
 
 class MessageType(Enum):
     DANMU = 0
-    NORMAL_GIFT = 1
-    WEALTHY_GIFT = 2
-    SC = 4
-    CAPTAIN_BUY = 8
+    WEALTHY_GIFT = 1
+    SC = 2
+    CAPTAIN_BUY = 4
 
 
 # 弹幕计数功能实现，暂时没用，将于以后加入时段弹幕量后加入主程序（注释编写时间：v1.2-alpha)

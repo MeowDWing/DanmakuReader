@@ -4,13 +4,11 @@
     不过考虑到之后会做新的弹幕界面，所以先保留着，据作者毫无根据的想象，这些应该占不了多少性能
 
 """
-import random
 from collections import deque
 
 from bilibili_api import live, sync, credential
 
 import global_setting
-import iosetting as ios
 
 
 # Exception Zone
@@ -102,7 +100,16 @@ class ReceiveAndDistribution:
 
         sync(self.room_event_stream.connect())
 
-    def event_distribution(self, event: dict = None):
+    def event_distribution(self, event: dict = None) -> None:
+        """
+
+            * 队列安排：
+                * 弹幕队列 - 分发弹幕信息
+                * 礼物队列 - 处理礼物信息（花钱的东西都塞进去在处理线程处理）
+                * 其他队列 - 其他事件一并归类，便于后续拆分与处理
+        :param event: json转为字典
+        :return: 无
+        """
         ctrl_type = event['type']
         match ctrl_type:
             case 'DANMU_MSG': self.danmu_queue.append(event['data'])
