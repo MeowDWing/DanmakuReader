@@ -16,6 +16,14 @@
 
 **本项目源于作者学习python的过程中，十分希望与感谢各位对本项目的指导**
 
+本项目最终目的是写成一个通用的，低占用的windows操作系统下的python或C++语言的弹幕姬。即功能简洁全面，操作简单，数据安全。
+
+# 本项目的一些发展阻碍
+* 作者不会websocket
+* 作者不太会GUI的一些功能的常见方案
+* 如果你会这些并对本仓库有兴趣，欢迎通过任何方式提出您的意见与建议。
+* 红豆泥阿里嘎多
+
 ## 使用方法：（需要登录b站账号，请仔细阅读登录界面说明）
 
 - 非打包方案
@@ -25,7 +33,8 @@
 - release方案
   - 个人打包
     - 本项目给出了项目打包文件DanmakuReader.spec，只需安装`pip install pyinstaller`，并通过
-      `pyinstaller DanmakuReader.spec`即可打包项目文件，打包好的程序位于 `./dist`文件夹中
+      `pyinstaller DanmakuReader.spec`即可打包项目文件，打包好的程序位于 `./dist`文件夹中 
+      （需要安装requirements.txt内容）
   - release方案
     - 可以通过百度网盘
       > https://pan.baidu.com/s/1Xfv6NSY8QTdNOpDL7I-OBw?pwd=11my
