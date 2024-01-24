@@ -5,6 +5,7 @@
 """
 
 import os
+import time
 from collections import deque
 
 import bilibili_api
@@ -159,12 +160,23 @@ class LaunchWindow(QWidget):
         self.ui = launchwindow.Ui_Launch()
         self.ui.setupUi(self)
 
+        # 处理队列初始化
         self.__global_queue_danmu = None
         self.__global_queue_gift = None
         self.__global_queue_others = None
         self.__global_queue_to_read = None
+        self.__global_queue_to_counter = None
+
+        # 线程名初始化
+        # - 分发线程
         self.thread_distribution: launch_func.DistributeThread | None = None
+        # - 处理线程
+        self.thread_handler: launch_func.EventHandlerThread | None = None
+        # - 计数线程
+        self.thread_counter: launch_func.CounterThread | None = None
+        # - 读线程
         self.thread_reader: launch_func.RdThread | None = None
+
 
         self.ui.lvl_combox.setCurrentText(str(global_setting.settings.min_lvl))
 
@@ -270,6 +282,7 @@ class LaunchWindow(QWidget):
         self.__global_queue_gift = deque()
         self.__global_queue_others = deque()
         self.__global_queue_to_read = deque()
+        self.__global_queue_to_counter = deque()
 
         print('正在读取房间号...')
 
@@ -278,12 +291,23 @@ class LaunchWindow(QWidget):
             danmu=self.__global_queue_danmu, gift=self.__global_queue_gift, others=self.__global_queue_others
         )
         print('正在初始化事件处理器...')
+        self.thread_handler = launch_func.EventHandlerThread(
+            danmu=self.__global_queue_danmu, gift=self.__global_queue_gift, others=self.__global_queue_others,
+            to_thread_reader=self.__global_queue_to_read, to_counter=self.__global_queue_to_counter
+        )
         print('正在初始化计数器...')
+        self.thread_counter = launch_func.CounterThread(
+            from_danmu_processor=self.__global_queue_to_counter, ui=self.ui
+        )
         print("正在初始化阅读器...")
         self.thread_reader = launch_func.RdThread(_g_queue=self.__global_queue_to_read, _ui=self.ui)
 
-        self.thread_reader.start()
+
         self.thread_distribution.start()
+        time.sleep(1)
+        self.thread_handler.start()
+        self.thread_reader.start()
+        self.thread_counter.start()
 
     def temp_lvl_limit(self):
         if isinstance(self.thread_distribution, launch_func.DistributeThread):

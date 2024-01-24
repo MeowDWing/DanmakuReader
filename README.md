@@ -2,7 +2,7 @@
 <div align="center">
 
 # Danmaku Reader
-[![LICENSE](https://img.shields.io/badge/LICENSE-GPLv3+-red)][LICENSE]
+[![LICENSE](https://img.shields.io/badge/LICENSE-GPLv3+-red)][license]
 [![Python](https://img.shields.io/badge/python-3.9+-blue)](https://www.python.org)
 [![基于](https://img.shields.io/badge/基于-bilibili_api_python-green)][base]
 

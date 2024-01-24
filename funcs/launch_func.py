@@ -5,6 +5,7 @@ from PyQt5.QtCore import QThread
 from pycaw.pycaw import AudioUtilities
 import pyttsx3
 
+import dr_window
 from ui import launchwindow
 
 import distribution as lg
@@ -28,19 +29,32 @@ class DistributeThread(QThread):
         self.distributor.living_on()
 
 class EventHandlerThread(QThread):
-    def __init__(self, danmu:deque, gift:deque, others:deque, to_thread_reader:deque):
+    def __init__(self, danmu:deque, gift:deque, others:deque, to_thread_reader:deque, to_counter: deque):
         super().__init__()
         self._event_handler = None
         self.danmu = danmu
         self.gift = gift
         self.others = others
         self.to_thread_reader = to_thread_reader
+        self.to_counter = to_counter
 
     def run(self) -> None:
         self._event_handler = event_handler.EventProcessor(
-            danmu=self.danmu, gift=self.gift, others=self.others, to_thread_reader=self.to_thread_reader
+            danmu=self.danmu, gift=self.gift, others=self.others, to_thread_reader=self.to_thread_reader,
+            to_counter=self.to_counter
         )
         self._event_handler.processor()
+
+class CounterThread(QThread):
+    def __init__(self, from_danmu_processor:deque, ui: launchwindow):
+        super().__init__()
+        self._counter = None
+        self.danmaku = from_danmu_processor
+        self._ui = ui
+
+    def run(self) -> None:
+        self._counter = event_handler.DanmakuCounterAndHandler(from_danmu_processor=self.danmaku, ui=self._ui)
+        self._counter.count()
 
 class RdThread(QThread):
     """

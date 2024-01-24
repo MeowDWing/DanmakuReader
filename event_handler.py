@@ -27,7 +27,7 @@ class Counter:
     def __init__(self):
         # [danmaku content] : DanmakuCountNode
         self.count = dict()
-        self.common_preserve = []
+        self.common_preserve = [('initial', 0)]
         self.common_preserve_min_len = 0
 
     def append(self, danmaku_content):
@@ -38,10 +38,18 @@ class Counter:
             q.append(t)
         else:
             q = deque()
+            q.append(t)
             self.count[danmaku_content] = q
 
         self.update_maintain(q)
-        if l:=len(q)>self.common_preserve_min_len:
+        flag = True
+        for i in range(len(self.common_preserve)):
+            if self.common_preserve[i][0] == danmaku_content:
+                tup = self.common_preserve[i]
+                self.common_preserve[i] = (danmaku_content, tup[1]+1)
+                flag = False
+
+        if flag and (l:=len(q))>self.common_preserve_min_len:
             self.common_preserve.append((danmaku_content,l))
 
     def common_maintain(self):
@@ -60,7 +68,10 @@ class Counter:
         else:
             self.common_preserve = new_cp
 
-        self.common_preserve_min_len = new_cp[-1][1]
+        if len(self.common_preserve)<10:
+            self.common_preserve_min_len = 0
+        else:
+            self.common_preserve_min_len = new_cp[-1][1]
 
     def update_maintain(self, q: deque):
         self.cut(q, int(time.time())-600)
@@ -78,7 +89,10 @@ class Counter:
         else:
             pass
 
-        self.common_preserve_min_len = self.common_preserve[-1][1]
+        if len(self.common_preserve)<10:
+            self.common_preserve_min_len = 0
+        else:
+            self.common_preserve_min_len = self.common_preserve[-1][1]
 
     @staticmethod
     def cut(queue: deque, threshold_t: int):
@@ -266,10 +280,18 @@ class DanmakuCounterAndHandler:
         common_maintain_timer = 120
         absolutely_maintain_counter = 15
         last_maintain = int(time.time())
-        i = 1000
+        i = 10
 
         while True:
             t = int(time.time())
+            while i > 1:
+                if len(self.danmu)>0:
+                    i -= 1
+                    danmaku_content = self.danmu.popleft()
+                    self.counter.append(danmaku_content)
+                else:
+                    time.sleep(3)
+
             if t-last_maintain > common_maintain_timer:
                 if absolutely_maintain_counter > 1:
                     self.counter.common_maintain()
@@ -278,26 +300,25 @@ class DanmakuCounterAndHandler:
                     self.counter.absolutely_maintain()
                     absolutely_maintain_counter = 15
 
-            while i > 1:
-                i -= 1
-                danmaku_content = self.danmu.popleft()
-                self.counter.append(danmaku_content)
-
             self.update()
+            i = 10
 
     def update(self):
-        if self.counter.common_preserve_min_len == self.counter.common_preserve[-1][1]:
-            pass
-        else:
-            self.counter.common_preserve.sort(key=lambda x:x[1], reverse=True)
+        if global_setting.settings.debug: print(self.counter.common_preserve)
+        self.counter.common_preserve.sort(key=lambda x:x[1], reverse=True)
+
+        if len(self.counter.common_preserve)>10:
+            self.counter.common_preserve = self.counter.common_preserve[0:10]
+            self.counter.common_preserve_min_len = self.counter.common_preserve[-1][1]
 
         tips = ''
         cp = self.counter.common_preserve
         for i in range(len(cp)):
-            tips = tips + f'{i+1}:{cp[0]} - {cp[1]}\n'
+            tips = tips + f'{i+1}:{cp[i][0]} - {cp[i][1]}\n'
 
         first = f'{cp[0][0]}'
-        print('locate: event_handler - l291 - not yet finished')
+        self._ui.major_danmaku_content.setText(first)
+        self._ui.major_danmaku_content.setToolTip(tips)
 
 
 
@@ -409,7 +430,7 @@ class EventProcessor:
             case 'GUARD_BUY': self.gift_processor_part_captain(event)
 
     def gift_processor_part_gift(self, event):
-        print('[GIFT]'+event)
+        if global_setting.settings.debug: print(f'[GIFT]{event}')
 
     def gift_processor_part_SC(self, event):
         SC_info = event['data']
@@ -440,7 +461,7 @@ class EventProcessor:
         #     case 1:
         #         tag = 'CAPTAIN_BUY_1'
 
-        print(f'[CAPTAIN]{purchase_info}')
+        if global_setting.settings.debug: print(f'[CAPTAIN]{purchase_info}')
 
 
 if __name__ == '__main__':
