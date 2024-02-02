@@ -223,7 +223,7 @@ class LaunchWindow(QWidget):
     def slider_mouse_realise_event(self, a0: QtGui.QMouseEvent) -> None:
 
         self.volume_bar_pressed = False
-        w = self.volume_bar.width()
+        w = 0
         p = a0.pos()
         px = p.x()
 
@@ -232,6 +232,7 @@ class LaunchWindow(QWidget):
         if (now_x - 40) < px < (now_x + 40):
             pass
         else:
+            w = self.volume_bar.width()
             px = int((px / w) * 100)
             self.volume_bar.setValue(px)
             global_setting.volume_ctrl.set_volume(px)

@@ -113,6 +113,8 @@ class ReceiveAndDistribution:
         ctrl_type = event['type']
         match ctrl_type:
             case 'DANMU_MSG': self.danmu_queue.append(event['data'])
+            # 弹幕连击没有cmd字段，所以补上便于区分
+            case 'DM_INTERACTION': event['data']['cmd']='DM_INTERACTION' ,self.danmu_queue.append(event['data'])
             case 'SEND_GIFT': self.gift_queue.append(event['data'])
             case 'SUPER_CHAT_MESSAGE': self.gift_queue.append(event['data'])
             case 'GUARD_BUY': self.gift_queue.append(event['data'])

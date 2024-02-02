@@ -17,7 +17,6 @@ class MessageType(Enum):
     CAPTAIN_BUY = 4
 
 
-# 弹幕计数功能实现，暂时没用，将于以后加入时段弹幕量后加入主程序（注释编写时间：v1.2-alpha)
 class Counter:
     """
 
@@ -270,6 +269,11 @@ class Reader:
 
 
 class DanmakuCounterAndHandler:
+    """
+
+        弹幕计数器与计数处理器
+
+    """
     def __init__(self, from_danmu_processor:deque, ui: launchwindow):
         self.counter = Counter()
         self.danmu = from_danmu_processor
@@ -277,6 +281,11 @@ class DanmakuCounterAndHandler:
         self._ui:launchwindow.Ui_Launch = ui
 
     def count(self):
+        """
+            每120秒做常规维护，每15次常规维护做全弹幕维护，每次弹幕加入做对应弹幕维护
+            每录入10个弹幕做一次界面更新
+        :return:
+        """
         common_maintain_timer = 120
         absolutely_maintain_counter = 15
         last_maintain = int(time.time())
@@ -304,6 +313,11 @@ class DanmakuCounterAndHandler:
             i = 10
 
     def update(self):
+        """
+            ui更新
+
+        :return:
+        """
         if global_setting.settings.debug: print(self.counter.common_preserve)
         self.counter.common_preserve.sort(key=lambda x:x[1], reverse=True)
 
@@ -379,6 +393,13 @@ class EventProcessor:
                         self.gift_processor(event)
 
     def danmaku_processor(self, event):
+
+        cmd = event['cmd']
+        match cmd:
+            case 'DANMU_MSG': self.single_danmaku_processor(event)
+            case 'DM_INTERACTION': self.multi_danmaku_processor(event)
+
+    def single_danmaku_processor(self, event):
         user_fans_lvl = 0
         print_flag = 'NORMAL'
         if_read = False
@@ -420,6 +441,19 @@ class EventProcessor:
         # [lvl|nickname]says
         # display_content = ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}")
         # ios.display_details(f"[{user_fans_lvl}|{nickname}]{danmaku_content}", tag=print_flag, ui=self.ui)
+
+    def multi_danmaku_processor(self, event):
+
+        if self.debug_flag:
+            r = random.randrange(0, 100, 1)
+            if r > 94:
+                with open('./logging/sample_danmaku.txt', 'a') as f:
+                    f.write('multi：'+str(event))
+
+            print('multi_danmu:'+str(event))
+
+
+
 
     def gift_processor(self, event):
         cmd = event['cmd']

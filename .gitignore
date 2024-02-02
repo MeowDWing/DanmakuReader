@@ -167,6 +167,7 @@ only_test.py
 # 项目可能自动创建的文件
 logging/
 files/
+.vscode/
 ban_word.txt
 !DanmakuReader.spec
 *.json
